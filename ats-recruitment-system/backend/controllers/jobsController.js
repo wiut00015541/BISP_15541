@@ -9,6 +9,18 @@ const getJobs = async (req, res, next) => {
   }
 };
 
+const getJobById = async (req, res, next) => {
+  try {
+    const job = await jobService.getJobById(req.params.id);
+    if (!job) {
+      return res.status(404).json({ message: "Job not found" });
+    }
+    return res.status(200).json(job);
+  } catch (error) {
+    return next(error);
+  }
+};
+
 const createJob = async (req, res, next) => {
   try {
     const job = await jobService.createJob(req.body, req.user.id);
@@ -38,6 +50,7 @@ const deleteJob = async (req, res, next) => {
 
 module.exports = {
   getJobs,
+  getJobById,
   createJob,
   updateJob,
   deleteJob,

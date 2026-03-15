@@ -1,6 +1,7 @@
+import { Link } from "react-router-dom";
 import { useLanguage } from "../i18n.jsx";
 
-const PipelineBoard = ({ items }) => {
+const PipelineBoard = ({ items, candidateLinkBase = "/candidates" }) => {
   const { t, getStageLabel } = useLanguage();
 
   return (
@@ -37,9 +38,12 @@ const PipelineBoard = ({ items }) => {
                 key={application.id}
                 className="rounded-[22px] border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-3 text-sm shadow-sm transition hover:-translate-y-1"
               >
-                <p className="font-semibold text-slate-900">
+                <Link
+                  className="font-semibold text-slate-900 underline-offset-2 hover:underline"
+                  to={`${candidateLinkBase}/${application.candidate.id}`}
+                >
                   {application.candidate.firstName} {application.candidate.lastName}
-                </p>
+                </Link>
                 <p className="mt-1 text-slate-600">{application.job.title}</p>
                 <div className="mt-3 inline-flex rounded-full bg-cyan-50 px-2.5 py-1 text-xs font-medium text-cyan-700">
                   {getStageLabel(application.currentStage?.name)}

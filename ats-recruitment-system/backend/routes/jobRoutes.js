@@ -8,6 +8,7 @@ const router = express.Router();
 router.use(authMiddleware);
 
 router.get("/", requirePermission("jobs.read"), jobsController.getJobs);
+router.get("/:id", requirePermission("jobs.read"), jobsController.getJobById);
 router.post("/", requirePermission("jobs.write"), jobsController.createJob);
 router.patch("/:id", requirePermission("jobs.write"), jobsController.updateJob);
 router.delete("/:id", requirePermission("jobs.write"), jobsController.deleteJob);

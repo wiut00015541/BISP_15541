@@ -68,6 +68,23 @@ const getJobs = async (query) => {
   };
 };
 
+const getJobById = (id) => {
+  return prisma.job.findUnique({
+    where: { id },
+    include: {
+      department: true,
+      location: true,
+      skills: { include: { skill: true } },
+      applications: {
+        include: {
+          candidate: true,
+          currentStage: true,
+        },
+      },
+    },
+  });
+};
+
 const createJob = (data, userId) => {
   return prisma.job.create({
     data: {
@@ -75,13 +92,17 @@ const createJob = (data, userId) => {
       description: data.description,
       type: data.type,
       status: data.status || "OPEN",
-      minSalary: data.minSalary,
-      maxSalary: data.maxSalary,
-      openings: data.openings || 1,
+      minSalary: data.minSalary ? Number(data.minSalary) : null,
+      maxSalary: data.maxSalary ? Number(data.maxSalary) : null,
+      openings: data.openings ? Number(data.openings) : 1,
       departmentId: data.departmentId,
       locationId: data.locationId,
       createdById: userId,
-      publishedAt: data.status === "OPEN" ? new Date() : null,
+      publishedAt: (data.status || "OPEN") === "OPEN" ? new Date() : null,
+    },
+    include: {
+      department: true,
+      location: true,
     },
   });
 };
@@ -89,7 +110,17 @@ const createJob = (data, userId) => {
 const updateJob = (id, data) => {
   return prisma.job.update({
     where: { id },
-    data,
+    data: {
+      ...data,
+      minSalary: data.minSalary ? Number(data.minSalary) : null,
+      maxSalary: data.maxSalary ? Number(data.maxSalary) : null,
+      openings: data.openings ? Number(data.openings) : 1,
+      publishedAt: data.status === "OPEN" ? new Date() : null,
+    },
+    include: {
+      department: true,
+      location: true,
+    },
   });
 };
 
@@ -99,6 +130,7 @@ const deleteJob = (id) => {
 
 module.exports = {
   getJobs,
+  getJobById,
   createJob,
   updateJob,
   deleteJob,

@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import FilterBar from "../components/FilterBar";
 import { useLanguage } from "../i18n.jsx";
 import { fetchJobs } from "../services/jobsService";
 
 const JobsPage = () => {
+  const navigate = useNavigate();
   const { t } = useLanguage();
   const [jobs, setJobs] = useState([]);
   const [filters, setFilters] = useState({
@@ -24,9 +26,14 @@ const JobsPage = () => {
 
   return (
     <section className="space-y-5">
-      <div>
-        <h1 className="text-3xl font-semibold tracking-tight text-slate-950">{t("jobs.title")}</h1>
-        <p className="mt-2 text-slate-500">{t("jobs.subtitle")}</p>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-semibold tracking-tight text-slate-950">{t("jobs.title")}</h1>
+          <p className="mt-2 text-slate-500">{t("jobs.subtitle")}</p>
+        </div>
+        <Link className="rounded-full bg-slate-950 px-5 py-3 text-sm font-medium text-white" to="/jobs/new">
+          {t("jobs.newButton")}
+        </Link>
       </div>
 
       <FilterBar>
@@ -72,7 +79,11 @@ const JobsPage = () => {
             ) : null}
 
             {jobs.map((job) => (
-              <tr key={job.id} className="border-t border-slate-100 transition hover:bg-cyan-50/40">
+              <tr
+                key={job.id}
+                className="cursor-pointer border-t border-slate-100 transition hover:bg-cyan-50/40"
+                onClick={() => navigate(`/jobs/${job.id}`)}
+              >
                 <td className="px-5 py-4 font-medium text-slate-900">{job.title}</td>
                 <td className="px-5 py-4 text-slate-600">{job.department?.name}</td>
                 <td className="px-5 py-4 text-slate-600">{job.location?.name}</td>

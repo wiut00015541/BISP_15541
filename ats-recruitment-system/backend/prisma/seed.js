@@ -21,6 +21,23 @@ const stages = [
   { name: "Rejected", order: 6, isTerminal: true },
 ];
 
+const departments = ["Engineering", "Product", "Design", "People Operations"];
+const locations = [
+  { name: "Remote", isRemote: true, country: "Global" },
+  { name: "Singapore", isRemote: false, country: "Singapore" },
+  { name: "Tashkent", isRemote: false, country: "Uzbekistan" },
+];
+const skills = [
+  "React",
+  "Node.js",
+  "TypeScript",
+  "Prisma",
+  "PostgreSQL",
+  "Figma",
+  "Recruiting",
+  "Sourcing",
+];
+
 async function main() {
   const [adminRole, recruiterRole, hiringManagerRole] = await Promise.all([
     prisma.role.upsert({
@@ -114,11 +131,34 @@ async function main() {
     });
   }
 
-  const engineeringDepartment = await prisma.department.upsert({
-    where: { name: "Engineering" },
-    update: {},
-    create: { name: "Engineering" },
-  });
+  const departmentRows = [];
+  for (const departmentName of departments) {
+    const department = await prisma.department.upsert({
+      where: { name: departmentName },
+      update: {},
+      create: { name: departmentName },
+    });
+    departmentRows.push(department);
+  }
+
+  for (const location of locations) {
+    await prisma.location.upsert({
+      where: { name: location.name },
+      update: {
+        country: location.country,
+        isRemote: location.isRemote,
+      },
+      create: location,
+    });
+  }
+
+  for (const skillName of skills) {
+    await prisma.skill.upsert({
+      where: { name: skillName },
+      update: {},
+      create: { name: skillName },
+    });
+  }
 
   const passwordHash = await bcrypt.hash("Admin@123", 10);
 
@@ -131,7 +171,7 @@ async function main() {
       email: "admin@ats.local",
       passwordHash,
       roleId: adminRole.id,
-      departmentId: engineeringDepartment.id,
+      departmentId: departmentRows[0].id,
     },
   });
 
