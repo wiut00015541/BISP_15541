@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useLanguage } from "../i18n";
+import { useLanguage } from "../i18n.jsx";
 import { login as loginRequest } from "../services/authService";
 
 const LoginPage = ({ onLogin }) => {

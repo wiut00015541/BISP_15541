@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useLanguage } from "../i18n";
+import { useLanguage } from "../i18n.jsx";
 import { fetchHiringFunnelReport } from "../services/reportsService";
 
 const ReportsPage = () => {

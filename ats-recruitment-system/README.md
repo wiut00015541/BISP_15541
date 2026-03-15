@@ -4,9 +4,15 @@ Production-oriented Applicant Tracking System inspired by SmartRecruiters.
 
 ## Stack
 
-- Backend: Node.js, Express, Prisma ORM, PostgreSQL (Supabase)
+- Backend: Node.js, Express, Prisma ORM, PostgreSQL (Neon)
 - Frontend: React, Vite, TailwindCSS
 - Deployment: Render (backend), Vercel (frontend)
+
+## Full Setup Guides
+
+- General installation and local development: [docs/SETUP.md](/c:/Users/diana.shadiyeva/Desktop/ATS_BISP15541/ats-recruitment-system/docs/SETUP.md)
+- Neon database configuration: [docs/NEON.md](/c:/Users/diana.shadiyeva/Desktop/ATS_BISP15541/ats-recruitment-system/docs/NEON.md)
+- Production deployment on Render and Vercel: [docs/DEPLOYMENT.md](/c:/Users/diana.shadiyeva/Desktop/ATS_BISP15541/ats-recruitment-system/docs/DEPLOYMENT.md)
 
 ## Project Structure
 
@@ -36,7 +42,6 @@ ats-recruitment-system
 ```bash
 cd backend
 npm install
-cp .env.example .env
 npx prisma generate
 npx prisma migrate dev --name init
 node prisma/seed.js
@@ -56,6 +61,8 @@ Create `frontend/.env`:
 ```bash
 VITE_API_URL=http://localhost:5000/api
 ```
+
+Frontend environment file: [frontend/.env](/c:/Users/diana.shadiyeva/Desktop/ATS_BISP15541/ats-recruitment-system/frontend/.env)
 
 ## Required ATS Features Implemented
 

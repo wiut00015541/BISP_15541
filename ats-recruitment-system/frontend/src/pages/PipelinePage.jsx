@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import PipelineBoard from "../components/PipelineBoard";
-import { useLanguage } from "../i18n";
+import { useLanguage } from "../i18n.jsx";
 import { fetchApplications } from "../services/applicationsService";
 
 const stages = ["Applied", "Screening", "Interview", "Offer", "Hired", "Rejected"];

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import StatCard from "../components/StatCard";
-import { useLanguage } from "../i18n";
+import { useLanguage } from "../i18n.jsx";
 import { fetchDashboardOverview } from "../services/dashboardService";
 
 const DashboardPage = () => {

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import FilterBar from "../components/FilterBar";
 import { usePagination } from "../hooks/usePagination";
-import { useLanguage } from "../i18n";
+import { useLanguage } from "../i18n.jsx";
 import { fetchCandidates } from "../services/candidatesService";
 
 const CandidatesPage = () => {

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import FilterBar from "../components/FilterBar";
-import { useLanguage } from "../i18n";
+import { useLanguage } from "../i18n.jsx";
 import { fetchJobs } from "../services/jobsService";
 
 const JobsPage = () => {

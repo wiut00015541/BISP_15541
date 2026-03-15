@@ -1,7 +1,7 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import Layout from "./components/Layout";
 import { useAuth } from "./hooks/useAuth";
-import { LanguageProvider } from "./i18n";
+import { LanguageProvider } from "./i18n.jsx";
 import LoginPage from "./pages/LoginPage";
 import DashboardPage from "./pages/DashboardPage";
 import JobsPage from "./pages/JobsPage";

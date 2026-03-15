@@ -1,5 +1,5 @@
 import { Link, NavLink } from "react-router-dom";
-import { useLanguage } from "../i18n";
+import { useLanguage } from "../i18n.jsx";
 
 const Layout = ({ children, onLogout, user }) => {
   const { language, setLanguage, t } = useLanguage();
