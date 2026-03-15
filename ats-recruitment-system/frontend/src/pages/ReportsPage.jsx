@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
+import { useLanguage } from "../i18n";
 import { fetchHiringFunnelReport } from "../services/reportsService";
 
 const ReportsPage = () => {
+  const { t, getStageLabel } = useLanguage();
   const [report, setReport] = useState([]);
 
   useEffect(() => {
@@ -9,22 +11,29 @@ const ReportsPage = () => {
       const response = await fetchHiringFunnelReport();
       setReport(response.report || []);
     };
+
     load();
   }, []);
 
   return (
-    <section>
-      <h1 className="mb-4 text-2xl font-semibold text-slate-900">Reports</h1>
-      <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-        <h2 className="text-lg font-semibold">Hiring Funnel Analytics</h2>
-        <ul className="mt-4 space-y-2">
+    <section className="space-y-5">
+      <div>
+        <h1 className="text-3xl font-semibold tracking-tight text-slate-950">{t("reports.title")}</h1>
+        <p className="mt-2 text-slate-500">{t("reports.subtitle")}</p>
+      </div>
+
+      <div className="rounded-[30px] border border-white/80 bg-white/90 p-6 shadow-[0_18px_60px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+        <h2 className="text-xl font-semibold text-slate-950">{t("reports.funnel")}</h2>
+        <p className="mt-2 text-sm text-slate-500">{t("reports.funnelSubtitle")}</p>
+
+        <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {report.map((row) => (
-            <li key={row.stage} className="flex items-center justify-between rounded border border-slate-200 px-3 py-2 text-sm">
-              <span>{row.stage}</span>
-              <span className="font-semibold">{row.count}</span>
-            </li>
+            <div key={row.stage} className="rounded-[24px] border border-slate-100 bg-slate-50/70 p-4">
+              <p className="text-xs uppercase tracking-[0.24em] text-slate-400">{getStageLabel(row.stage)}</p>
+              <p className="mt-3 text-4xl font-semibold tracking-tight text-slate-950">{row.count}</p>
+            </div>
           ))}
-        </ul>
+        </div>
       </div>
     </section>
   );

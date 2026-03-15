@@ -1,16 +1,23 @@
+import { useLanguage } from "../i18n";
+
 const SettingsPage = () => {
+  const { t } = useLanguage();
+
   return (
-    <section>
-      <h1 className="mb-4 text-2xl font-semibold text-slate-900">Settings</h1>
-      <div className="rounded-lg border border-slate-200 bg-white p-4 text-sm shadow-sm">
-        <p className="text-slate-700">
-          Configure environment variables in backend `.env` for JWT, database access, and OpenAI integration.
-        </p>
-        <ul className="mt-3 list-disc pl-5 text-slate-600">
-          <li>JWT_SECRET and JWT_EXPIRES_IN</li>
-          <li>DATABASE_URL for Supabase PostgreSQL</li>
-          <li>OPENAI_API_KEY for resume analysis</li>
-          <li>FRONTEND_URL for CORS</li>
+    <section className="space-y-5">
+      <div>
+        <h1 className="text-3xl font-semibold tracking-tight text-slate-950">{t("settings.title")}</h1>
+        <p className="mt-2 text-slate-500">{t("settings.subtitle")}</p>
+      </div>
+
+      <div className="rounded-[30px] border border-white/80 bg-white/90 p-6 text-sm shadow-[0_18px_60px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+        <p className="text-slate-700">{t("settings.intro")}</p>
+        <ul className="mt-4 space-y-3 text-slate-600">
+          <li className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3">{t("settings.jwt")}</li>
+          <li className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3">{t("settings.database")}</li>
+          <li className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3">{t("settings.openai")}</li>
+          <li className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3">{t("settings.cors")}</li>
+          <li className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3">{t("settings.localization")}</li>
         </ul>
       </div>
     </section>

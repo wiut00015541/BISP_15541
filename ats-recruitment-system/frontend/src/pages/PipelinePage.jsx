@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import PipelineBoard from "../components/PipelineBoard";
+import { useLanguage } from "../i18n";
 import { fetchApplications } from "../services/applicationsService";
 
 const stages = ["Applied", "Screening", "Interview", "Offer", "Hired", "Rejected"];
 
 const PipelinePage = () => {
+  const { t } = useLanguage();
   const [applications, setApplications] = useState([]);
 
   useEffect(() => {
@@ -12,6 +14,7 @@ const PipelinePage = () => {
       const response = await fetchApplications({ page: 1, limit: 200 });
       setApplications(response.data);
     };
+
     load();
   }, []);
 
@@ -23,8 +26,11 @@ const PipelinePage = () => {
   }, [applications]);
 
   return (
-    <section>
-      <h1 className="mb-4 text-2xl font-semibold text-slate-900">Application Pipeline</h1>
+    <section className="space-y-5">
+      <div>
+        <h1 className="text-3xl font-semibold tracking-tight text-slate-950">{t("pipeline.title")}</h1>
+        <p className="mt-2 text-slate-500">{t("pipeline.subtitle")}</p>
+      </div>
       <PipelineBoard items={boardData} />
     </section>
   );

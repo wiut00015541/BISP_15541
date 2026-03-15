@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import Layout from "./components/Layout";
 import { useAuth } from "./hooks/useAuth";
+import { LanguageProvider } from "./i18n";
 import LoginPage from "./pages/LoginPage";
 import DashboardPage from "./pages/DashboardPage";
 import JobsPage from "./pages/JobsPage";
@@ -28,11 +29,11 @@ const ProtectedApp = ({ auth }) => {
 const App = () => {
   const auth = useAuth();
 
-  if (!auth.isAuthenticated) {
-    return <LoginPage onLogin={auth.login} />;
-  }
-
-  return <ProtectedApp auth={auth} />;
+  return (
+    <LanguageProvider>
+      {auth.isAuthenticated ? <ProtectedApp auth={auth} /> : <LoginPage onLogin={auth.login} />}
+    </LanguageProvider>
+  );
 };
 
 export default App;
