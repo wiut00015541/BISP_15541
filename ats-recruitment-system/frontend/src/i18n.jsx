@@ -113,6 +113,8 @@ const dictionaries = {
       subtitle: "Move quickly across every stage from applied to hired.",
       candidateCount: "candidates",
       empty: "No applications in this stage",
+      dragHint: "Drag candidates between stages",
+      moving: "Updating stage...",
     },
     reports: {
       title: "Reports",
@@ -266,6 +268,8 @@ const dictionaries = {
       subtitle: "\u0411\u044b\u0441\u0442\u0440\u043e \u043e\u0442\u0441\u043b\u0435\u0436\u0438\u0432\u0430\u0439\u0442\u0435 \u043f\u0443\u0442\u044c \u043a\u0430\u043d\u0434\u0438\u0434\u0430\u0442\u0430 \u043e\u0442 \u043e\u0442\u043a\u043b\u0438\u043a\u0430 \u0434\u043e \u043d\u0430\u0439\u043c\u0430.",
       candidateCount: "\u043a\u0430\u043d\u0434\u0438\u0434\u0430\u0442\u043e\u0432",
       empty: "\u041d\u0430 \u044d\u0442\u043e\u043c \u044d\u0442\u0430\u043f\u0435 \u043d\u0435\u0442 \u0437\u0430\u044f\u0432\u043e\u043a",
+      dragHint: "\u041f\u0435\u0440\u0435\u0442\u0430\u0449\u0438\u0442\u0435 \u043a\u0430\u043d\u0434\u0438\u0434\u0430\u0442\u043e\u0432 \u043c\u0435\u0436\u0434\u0443 \u044d\u0442\u0430\u043f\u0430\u043c\u0438",
+      moving: "\u041e\u0431\u043d\u043e\u0432\u043b\u044f\u0435\u043c \u044d\u0442\u0430\u043f...",
     },
     reports: {
       title: "\u041e\u0442\u0447\u0435\u0442\u044b",

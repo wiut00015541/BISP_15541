@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import PipelineBoard from "../components/PipelineBoard";
 import { useLanguage } from "../i18n.jsx";
-import { fetchApplications } from "../services/applicationsService";
+import { fetchApplications, updateApplicationStage } from "../services/applicationsService";
 import { fetchJobById } from "../services/jobsService";
 
 const stages = ["Applied", "Screening", "Interview", "Offer", "Hired", "Rejected"];
@@ -12,6 +12,7 @@ const JobPipelinePage = () => {
   const { t } = useLanguage();
   const [job, setJob] = useState(null);
   const [applications, setApplications] = useState([]);
+  const [movingApplicationId, setMovingApplicationId] = useState(null);
 
   useEffect(() => {
     const load = async () => {
@@ -33,13 +34,50 @@ const JobPipelinePage = () => {
     }));
   }, [applications]);
 
+  const handleMove = async (applicationId, nextStage) => {
+    const previousApplications = applications;
+    const targetApplication = applications.find((item) => item.id === applicationId);
+    if (!targetApplication) {
+      return;
+    }
+
+    setMovingApplicationId(applicationId);
+    setApplications((current) =>
+      current.map((item) =>
+        item.id === applicationId
+          ? {
+              ...item,
+              currentStage: {
+                ...item.currentStage,
+                name: nextStage,
+              },
+            }
+          : item
+      )
+    );
+
+    try {
+      await updateApplicationStage(applicationId, nextStage, `Moved to ${nextStage} from pipeline board`);
+    } catch (_error) {
+      setApplications(previousApplications);
+    } finally {
+      setMovingApplicationId(null);
+    }
+  };
+
   return (
     <section className="space-y-5">
       <div>
         <h1 className="text-3xl font-semibold tracking-tight text-slate-950">{job?.title || t("jobs.pipelineTitle")}</h1>
         <p className="mt-2 text-slate-500">{t("jobs.pipelineSubtitle")}</p>
+        <p className="mt-2 text-sm text-cyan-700">{t("pipeline.dragHint")}</p>
       </div>
-      <PipelineBoard items={boardData} candidateLinkBase="/candidates" />
+      <PipelineBoard
+        items={boardData}
+        candidateLinkBase="/candidates"
+        onMove={handleMove}
+        movingApplicationId={movingApplicationId}
+      />
     </section>
   );
 };

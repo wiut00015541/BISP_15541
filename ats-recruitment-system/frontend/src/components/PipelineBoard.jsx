@@ -1,16 +1,47 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useLanguage } from "../i18n.jsx";
 
-const PipelineBoard = ({ items, candidateLinkBase = "/candidates" }) => {
+const PipelineBoard = ({ items, candidateLinkBase = "/candidates", onMove, movingApplicationId = null }) => {
   const { t, getStageLabel } = useLanguage();
+  const [dragOverStage, setDragOverStage] = useState(null);
 
   return (
     <div className="grid gap-4 xl:grid-cols-6">
       {items.map((column, index) => (
         <section
           key={column.stage}
-          className="rounded-[28px] border border-white/80 bg-white/90 p-4 shadow-[0_18px_60px_rgba(15,23,42,0.08)] backdrop-blur-xl"
+          className={`rounded-[28px] border p-4 shadow-[0_18px_60px_rgba(15,23,42,0.08)] backdrop-blur-xl transition ${
+            dragOverStage === column.stage
+              ? "border-cyan-300 bg-cyan-50/70"
+              : "border-white/80 bg-white/90"
+          }`}
           style={{ animationDelay: `${index * 80}ms` }}
+          onDragOver={(event) => {
+            if (!onMove) {
+              return;
+            }
+            event.preventDefault();
+            setDragOverStage(column.stage);
+          }}
+          onDragLeave={() => {
+            if (dragOverStage === column.stage) {
+              setDragOverStage(null);
+            }
+          }}
+          onDrop={(event) => {
+            if (!onMove) {
+              return;
+            }
+            event.preventDefault();
+            const applicationId = event.dataTransfer.getData("applicationId");
+            const currentStage = event.dataTransfer.getData("currentStage");
+            setDragOverStage(null);
+            if (!applicationId || currentStage === column.stage) {
+              return;
+            }
+            onMove(applicationId, column.stage);
+          }}
         >
           <header className="mb-4 flex items-center justify-between gap-3">
             <div>
@@ -36,7 +67,17 @@ const PipelineBoard = ({ items, candidateLinkBase = "/candidates" }) => {
             {column.applications.map((application) => (
               <article
                 key={application.id}
-                className="rounded-[22px] border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-3 text-sm shadow-sm transition hover:-translate-y-1"
+                className={`rounded-[22px] border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-3 text-sm shadow-sm transition hover:-translate-y-1 ${
+                  movingApplicationId === application.id ? "opacity-60" : ""
+                }`}
+                draggable={Boolean(onMove)}
+                onDragStart={(event) => {
+                  if (!onMove) {
+                    return;
+                  }
+                  event.dataTransfer.setData("applicationId", application.id);
+                  event.dataTransfer.setData("currentStage", column.stage);
+                }}
               >
                 <Link
                   className="font-semibold text-slate-900 underline-offset-2 hover:underline"
@@ -48,6 +89,9 @@ const PipelineBoard = ({ items, candidateLinkBase = "/candidates" }) => {
                 <div className="mt-3 inline-flex rounded-full bg-cyan-50 px-2.5 py-1 text-xs font-medium text-cyan-700">
                   {getStageLabel(application.currentStage?.name)}
                 </div>
+                {movingApplicationId === application.id ? (
+                  <p className="mt-2 text-xs text-slate-400">{t("pipeline.moving")}</p>
+                ) : null}
               </article>
             ))}
           </div>
