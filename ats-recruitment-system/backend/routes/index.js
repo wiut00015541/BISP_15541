@@ -8,6 +8,8 @@ const dashboardRoutes = require("./dashboardRoutes");
 const reportRoutes = require("./reportRoutes");
 const aiRoutes = require("./aiRoutes");
 const lookupRoutes = require("./lookupRoutes");
+const departmentRoutes = require("./departmentRoutes");
+const userRoutes = require("./userRoutes");
 
 const router = express.Router();
 
@@ -19,5 +21,7 @@ router.use("/dashboard", dashboardRoutes);
 router.use("/reports", reportRoutes);
 router.use("/ai", aiRoutes);
 router.use("/lookups", lookupRoutes);
+router.use("/departments", departmentRoutes);
+router.use("/users", userRoutes);
 
 module.exports = router;

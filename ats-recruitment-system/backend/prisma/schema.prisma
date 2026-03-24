@@ -45,6 +45,8 @@ model User {
   role           Role            @relation(fields: [roleId], references: [id])
   department     Department?     @relation(fields: [departmentId], references: [id])
   createdJobs    Job[]           @relation("CreatedJobs")
+  recruiterJobs  Job[]           @relation("RecruiterJobs")
+  hiringManagerJobs Job[]        @relation("HiringManagerJobs")
   assignedCandidates Candidate[] @relation("AssignedCandidates")
   notes          CandidateNote[]
   applicationChanges ApplicationHistory[]
@@ -150,6 +152,8 @@ model Job {
   departmentId     String
   locationId       String
   createdById      String
+  recruiterId      String
+  hiringManagerId  String
   publishedAt      DateTime?
   closesAt         DateTime?
   createdAt        DateTime       @default(now())
@@ -158,12 +162,16 @@ model Job {
   department       Department     @relation(fields: [departmentId], references: [id])
   location         Location       @relation(fields: [locationId], references: [id])
   createdBy        User           @relation("CreatedJobs", fields: [createdById], references: [id])
+  recruiter        User           @relation("RecruiterJobs", fields: [recruiterId], references: [id])
+  hiringManager    User           @relation("HiringManagerJobs", fields: [hiringManagerId], references: [id])
   skills           JobSkill[]
   applications     Application[]
 
   @@index([departmentId])
   @@index([locationId])
   @@index([status])
+  @@index([recruiterId])
+  @@index([hiringManagerId])
   @@map("jobs")
 }
 

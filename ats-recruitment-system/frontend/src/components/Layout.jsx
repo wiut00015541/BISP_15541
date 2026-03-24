@@ -1,8 +1,11 @@
 import { Link, NavLink } from "react-router-dom";
 import { useLanguage } from "../i18n.jsx";
+import NotificationTray from "./NotificationTray";
 
 const Layout = ({ children, onLogout, user }) => {
   const { language, setLanguage, t } = useLanguage();
+  const permissions = user?.permissions || [];
+  const isAdmin = user?.role === "admin";
 
   const links = [
     { to: "/dashboard", label: t("nav.dashboard") },
@@ -11,6 +14,7 @@ const Layout = ({ children, onLogout, user }) => {
     { to: "/pipeline", label: t("nav.pipeline") },
     { to: "/reports", label: t("nav.reports") },
     { to: "/settings", label: t("nav.settings") },
+    ...(isAdmin || permissions.includes("users.read") ? [{ to: "/users", label: t("nav.users") }] : []),
   ];
 
   return (
@@ -61,6 +65,7 @@ const Layout = ({ children, onLogout, user }) => {
               <p className="text-sm font-semibold text-slate-900">
                 {user?.firstName} {user?.lastName}
               </p>
+              <p className="text-xs uppercase tracking-[0.2em] text-slate-400">{user?.role}</p>
             </div>
 
             <button
@@ -109,6 +114,7 @@ const Layout = ({ children, onLogout, user }) => {
 
         <main className="space-y-6">{children}</main>
       </div>
+      <NotificationTray />
     </div>
   );
 };

@@ -1,11 +1,51 @@
 const prisma = require("../config/prisma");
+const { isAdmin } = require("../utils/accessScope");
 
-const getDashboardOverview = async () => {
+const buildJobScope = (user) => {
+  if (isAdmin(user)) {
+    return {};
+  }
+
+  return {
+    OR: [{ recruiterId: user.id }, { hiringManagerId: user.id }],
+  };
+};
+
+const buildApplicationScope = (user) => {
+  if (isAdmin(user)) {
+    return {};
+  }
+
+  return {
+    job: {
+      OR: [{ recruiterId: user.id }, { hiringManagerId: user.id }],
+    },
+  };
+};
+
+const buildCandidateScope = (user) => {
+  if (isAdmin(user)) {
+    return {};
+  }
+
+  return {
+    applications: {
+      some: {
+        job: {
+          OR: [{ recruiterId: user.id }, { hiringManagerId: user.id }],
+        },
+      },
+    },
+  };
+};
+
+const getDashboardOverview = async (user) => {
   const [totalJobs, totalCandidates, stageAggregation] = await Promise.all([
-    prisma.job.count(),
-    prisma.candidate.count(),
+    prisma.job.count({ where: buildJobScope(user) }),
+    prisma.candidate.count({ where: buildCandidateScope(user) }),
     prisma.application.groupBy({
       by: ["currentStageId"],
+      where: buildApplicationScope(user),
       _count: { _all: true },
     }),
   ]);
@@ -29,11 +69,13 @@ const getDashboardOverview = async () => {
   };
 };
 
-const buildFunnelReport = async () => {
+const buildFunnelReport = async (user) => {
   const stages = await prisma.stage.findMany({
     orderBy: { order: "asc" },
     include: {
-      applications: true,
+      applications: {
+        where: buildApplicationScope(user),
+      },
     },
   });
 

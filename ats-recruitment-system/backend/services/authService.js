@@ -2,15 +2,28 @@ const bcrypt = require("bcryptjs");
 const prisma = require("../config/prisma");
 const { generateToken } = require("../utils/jwt");
 
+const roleInclude = {
+  role: {
+    include: {
+      rolePermissions: {
+        include: {
+          permission: true,
+        },
+      },
+    },
+  },
+};
+
 const sanitizeUser = (user) => ({
   id: user.id,
   firstName: user.firstName,
   lastName: user.lastName,
   email: user.email,
   role: user.role?.name,
+  permissions: user.role?.rolePermissions?.map((item) => item.permission.key) || [],
 });
 
-const register = async ({ firstName, lastName, email, password, roleName = "recruiter" }) => {
+const register = async ({ firstName, lastName, email, password, roleName = "recruiter", departmentId }) => {
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
     const error = new Error("Email already registered");
@@ -33,8 +46,9 @@ const register = async ({ firstName, lastName, email, password, roleName = "recr
       email,
       passwordHash,
       roleId: role.id,
+      departmentId: departmentId || null,
     },
-    include: { role: true },
+    include: roleInclude,
   });
 
   const token = generateToken({ userId: user.id, role: user.role.name });
@@ -45,7 +59,7 @@ const register = async ({ firstName, lastName, email, password, roleName = "recr
 const login = async ({ email, password }) => {
   const user = await prisma.user.findUnique({
     where: { email },
-    include: { role: true },
+    include: roleInclude,
   });
 
   if (!user) {

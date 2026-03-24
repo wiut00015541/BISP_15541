@@ -32,6 +32,8 @@ const authMiddleware = async (req, res, next) => {
 
     req.user = {
       id: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
       email: user.email,
       role: user.role?.name,
       permissions: user.role?.rolePermissions?.map((rp) => rp.permission.key) || [],

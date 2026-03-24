@@ -2,6 +2,8 @@ const prisma = require("../config/prisma");
 const bcrypt = require("bcryptjs");
 
 const permissions = [
+  { key: "users.read", label: "View Users" },
+  { key: "users.write", label: "Manage Users" },
   { key: "jobs.read", label: "View Jobs" },
   { key: "jobs.write", label: "Manage Jobs" },
   { key: "candidates.read", label: "View Candidates" },
@@ -24,8 +26,36 @@ const stages = [
 const departments = ["Engineering", "Product", "Design", "People Operations"];
 const locations = [
   { name: "Remote", isRemote: true, country: "Global" },
-  { name: "Singapore", isRemote: false, country: "Singapore" },
-  { name: "Tashkent", isRemote: false, country: "Uzbekistan" },
+  { name: "Tashkent City", isRemote: false, country: "Uzbekistan" },
+  { name: "Republic of Karakalpakstan", isRemote: false, country: "Uzbekistan" },
+  { name: "Andijan Region", isRemote: false, country: "Uzbekistan" },
+  { name: "Bukhara Region", isRemote: false, country: "Uzbekistan" },
+  { name: "Fergana Region", isRemote: false, country: "Uzbekistan" },
+  { name: "Jizzakh Region", isRemote: false, country: "Uzbekistan" },
+  { name: "Namangan Region", isRemote: false, country: "Uzbekistan" },
+  { name: "Navoiy Region", isRemote: false, country: "Uzbekistan" },
+  { name: "Kashkadarya Region", isRemote: false, country: "Uzbekistan" },
+  { name: "Samarkand Region", isRemote: false, country: "Uzbekistan" },
+  { name: "Sirdarya Region", isRemote: false, country: "Uzbekistan" },
+  { name: "Surkhandarya Region", isRemote: false, country: "Uzbekistan" },
+  { name: "Tashkent Region", isRemote: false, country: "Uzbekistan" },
+  { name: "Khorezm Region", isRemote: false, country: "Uzbekistan" },
+  { name: "Nukus", isRemote: false, country: "Uzbekistan" },
+  { name: "Samarkand", isRemote: false, country: "Uzbekistan" },
+  { name: "Bukhara", isRemote: false, country: "Uzbekistan" },
+  { name: "Andijan", isRemote: false, country: "Uzbekistan" },
+  { name: "Namangan", isRemote: false, country: "Uzbekistan" },
+  { name: "Fergana", isRemote: false, country: "Uzbekistan" },
+  { name: "Qarshi", isRemote: false, country: "Uzbekistan" },
+  { name: "Navoiy", isRemote: false, country: "Uzbekistan" },
+  { name: "Jizzakh", isRemote: false, country: "Uzbekistan" },
+  { name: "Gulistan", isRemote: false, country: "Uzbekistan" },
+  { name: "Termez", isRemote: false, country: "Uzbekistan" },
+  { name: "Urgench", isRemote: false, country: "Uzbekistan" },
+  { name: "Kokand", isRemote: false, country: "Uzbekistan" },
+  { name: "Margilan", isRemote: false, country: "Uzbekistan" },
+  { name: "Angren", isRemote: false, country: "Uzbekistan" },
+  { name: "Chirchiq", isRemote: false, country: "Uzbekistan" },
 ];
 const skills = [
   "React",
@@ -161,6 +191,8 @@ async function main() {
   }
 
   const passwordHash = await bcrypt.hash("Admin@123", 10);
+  const recruiterPasswordHash = await bcrypt.hash("Recruiter@123", 10);
+  const managerPasswordHash = await bcrypt.hash("Manager@123", 10);
 
   await prisma.user.upsert({
     where: { email: "admin@ats.local" },
@@ -171,6 +203,32 @@ async function main() {
       email: "admin@ats.local",
       passwordHash,
       roleId: adminRole.id,
+      departmentId: departmentRows[0].id,
+    },
+  });
+
+  await prisma.user.upsert({
+    where: { email: "recruiter@ats.local" },
+    update: {},
+    create: {
+      firstName: "Recruiter",
+      lastName: "One",
+      email: "recruiter@ats.local",
+      passwordHash: recruiterPasswordHash,
+      roleId: recruiterRole.id,
+      departmentId: departmentRows[0].id,
+    },
+  });
+
+  await prisma.user.upsert({
+    where: { email: "manager@ats.local" },
+    update: {},
+    create: {
+      firstName: "Hiring",
+      lastName: "Manager",
+      email: "manager@ats.local",
+      passwordHash: managerPasswordHash,
+      roleId: hiringManagerRole.id,
       departmentId: departmentRows[0].id,
     },
   });

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import PipelineBoard from "../components/PipelineBoard";
 import { useLanguage } from "../i18n.jsx";
+import { useNotifications } from "../notifications.jsx";
 import { fetchApplications, updateApplicationStage } from "../services/applicationsService";
 import { fetchJobById } from "../services/jobsService";
 
@@ -10,6 +11,7 @@ const stages = ["Applied", "Screening", "Interview", "Offer", "Hired", "Rejected
 const JobPipelinePage = () => {
   const { id } = useParams();
   const { t } = useLanguage();
+  const notifications = useNotifications();
   const [job, setJob] = useState(null);
   const [applications, setApplications] = useState([]);
   const [movingApplicationId, setMovingApplicationId] = useState(null);
@@ -58,8 +60,10 @@ const JobPipelinePage = () => {
 
     try {
       await updateApplicationStage(applicationId, nextStage, `Moved to ${nextStage} from pipeline board`);
+      notifications.success(t("common.successStageUpdated"));
     } catch (_error) {
       setApplications(previousApplications);
+      notifications.error(t("common.genericError"));
     } finally {
       setMovingApplicationId(null);
     }

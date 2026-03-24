@@ -1,8 +1,16 @@
 const prisma = require("../config/prisma");
 const { parsePagination, parseSort } = require("../utils/apiFeatures");
+const { isAdmin } = require("../utils/accessScope");
+const { sendEmail, renderEmailTemplate } = require("../utils/emailService");
 
-const buildApplicationWhere = (query) => {
+const buildAccessibleApplicationWhere = (query, user) => {
   const where = {};
+
+  if (!isAdmin(user)) {
+    where.job = {
+      OR: [{ recruiterId: user.id }, { hiringManagerId: user.id }],
+    };
+  }
 
   if (query.stage) {
     where.currentStage = {
@@ -21,8 +29,8 @@ const buildApplicationWhere = (query) => {
   return where;
 };
 
-const getApplications = async (query) => {
-  const where = buildApplicationWhere(query);
+const getApplications = async (query, user) => {
+  const where = buildAccessibleApplicationWhere(query, user);
   const { page, limit, skip } = parsePagination(query);
   const sortMap = { created_at: "appliedAt", updated_at: "updatedAt" };
   const normalizedQuery = { ...query, sort: sortMap[query.sort] || query.sort };
@@ -33,7 +41,12 @@ const getApplications = async (query) => {
       where,
       include: {
         candidate: true,
-        job: true,
+        job: {
+          include: {
+            recruiter: { select: { id: true, firstName: true, lastName: true, email: true } },
+            hiringManager: { select: { id: true, firstName: true, lastName: true, email: true } },
+          },
+        },
         currentStage: true,
       },
       orderBy,
@@ -54,12 +67,24 @@ const getApplications = async (query) => {
   };
 };
 
-const createApplication = async (payload, userId) => {
-  // Every new application starts from the first pipeline stage.
+const createApplication = async (payload, userId, user) => {
   const stage = await prisma.stage.findFirst({ where: { name: "Applied" } });
   if (!stage) {
     const error = new Error("Pipeline stage not configured");
     error.status = 500;
+    throw error;
+  }
+
+  const job = await prisma.job.findFirst({
+    where: {
+      id: payload.jobId,
+      ...(isAdmin(user) ? {} : { OR: [{ recruiterId: user.id }, { hiringManagerId: user.id }] }),
+    },
+  });
+
+  if (!job) {
+    const error = new Error("Job not found");
+    error.status = 404;
     throw error;
   }
 
@@ -85,9 +110,14 @@ const createApplication = async (payload, userId) => {
   return application;
 };
 
-const updateApplicationStage = async (applicationId, stageName, changedById, note) => {
+const updateApplicationStage = async (applicationId, stageName, changedById, note, user) => {
   const [application, nextStage] = await Promise.all([
-    prisma.application.findUnique({ where: { id: applicationId } }),
+    prisma.application.findFirst({
+      where: {
+        id: applicationId,
+        ...buildAccessibleApplicationWhere({}, user),
+      },
+    }),
     prisma.stage.findFirst({
       where: { name: { equals: stageName, mode: "insensitive" } },
     }),
@@ -106,7 +136,6 @@ const updateApplicationStage = async (applicationId, stageName, changedById, not
   });
 
   await prisma.applicationHistory.create({
-    // Store full transition history for audit/reporting.
     data: {
       applicationId,
       fromStageId: application.currentStageId,
@@ -119,15 +148,132 @@ const updateApplicationStage = async (applicationId, stageName, changedById, not
   return updated;
 };
 
-const scheduleInterview = (applicationId, payload) => {
-  return prisma.interview.create({
+const scheduleInterview = async (applicationId, payload, user) => {
+  const application = await prisma.application.findFirst({
+    where: {
+      id: applicationId,
+      ...buildAccessibleApplicationWhere({}, user),
+    },
+    include: {
+      candidate: true,
+      job: true,
+      currentStage: true,
+    },
+  });
+
+  if (!application) {
+    const error = new Error("Application not found");
+    error.status = 404;
+    throw error;
+  }
+
+  const [stage, interviewer] = await Promise.all([
+    payload.stageId
+      ? prisma.stage.findUnique({ where: { id: payload.stageId } })
+      : prisma.stage.findFirst({ where: { name: "Interview" } }),
+    prisma.user.findUnique({ where: { id: payload.interviewerId }, include: { role: true } }),
+  ]);
+
+  if (!stage) {
+    const error = new Error("Interview stage not found");
+    error.status = 400;
+    throw error;
+  }
+
+  if (!interviewer) {
+    const error = new Error("Interviewer not found");
+    error.status = 400;
+    throw error;
+  }
+
+  if (!payload.scheduledAt) {
+    const error = new Error("Scheduled date is required");
+    error.status = 400;
+    error.details = { scheduledAt: "Scheduled date is required" };
+    throw error;
+  }
+
+  const interview = await prisma.interview.create({
     data: {
       applicationId,
-      stageId: payload.stageId,
+      stageId: stage.id,
       interviewerId: payload.interviewerId,
       scheduledAt: new Date(payload.scheduledAt),
       durationMinutes: payload.durationMinutes || 60,
       meetingLink: payload.meetingLink,
+    },
+    include: {
+      stage: true,
+      interviewer: {
+        select: { id: true, firstName: true, lastName: true, email: true },
+      },
+      application: {
+        include: {
+          candidate: true,
+          job: true,
+        },
+      },
+    },
+  });
+
+  const formattedDate = new Date(interview.scheduledAt).toLocaleString("en-US", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
+
+  await sendEmail({
+    to: application.candidate.email,
+    subject: `Interview scheduled for ${application.job.title}`,
+    text: `Hello ${application.candidate.firstName},\n\nYour interview for ${application.job.title} has been scheduled for ${formattedDate}.\nInterviewer: ${interviewer.firstName} ${interviewer.lastName}\nMeeting link: ${payload.meetingLink || "To be shared soon"}\n\nBest regards,\nATS Recruitment Team`,
+    html: renderEmailTemplate({
+      heading: `Interview scheduled for ${application.job.title}`,
+      intro: `Hello ${application.candidate.firstName}, your interview has been scheduled.`,
+      sections: [
+        { label: "Role", value: application.job.title },
+        { label: "Date and time", value: formattedDate },
+        { label: "Interviewer", value: `${interviewer.firstName} ${interviewer.lastName}` },
+        { label: "Meeting link", value: payload.meetingLink || "To be shared soon" },
+      ],
+    }),
+  });
+
+  return interview;
+};
+
+const addInterviewFeedback = async (interviewId, payload, reviewerId, user) => {
+  const interview = await prisma.interview.findFirst({
+    where: {
+      id: interviewId,
+      application: buildAccessibleApplicationWhere({}, user),
+    },
+  });
+
+  if (!interview) {
+    const error = new Error("Interview not found");
+    error.status = 404;
+    throw error;
+  }
+
+  if (!payload.rating || Number(payload.rating) < 1 || Number(payload.rating) > 5) {
+    const error = new Error("Rating must be between 1 and 5");
+    error.status = 400;
+    error.details = { rating: "Rating must be between 1 and 5" };
+    throw error;
+  }
+
+  return prisma.interviewFeedback.create({
+    data: {
+      interviewId,
+      reviewerId,
+      rating: Number(payload.rating),
+      strengths: payload.strengths,
+      concerns: payload.concerns,
+      recommendation: payload.recommendation,
+    },
+    include: {
+      reviewer: {
+        select: { id: true, firstName: true, lastName: true, email: true },
+      },
     },
   });
 };
@@ -137,4 +283,5 @@ module.exports = {
   createApplication,
   updateApplicationStage,
   scheduleInterview,
+  addInterviewFeedback,
 };

@@ -100,6 +100,8 @@ CREATE TABLE "jobs" (
     "departmentId" TEXT NOT NULL,
     "locationId" TEXT NOT NULL,
     "createdById" TEXT NOT NULL,
+    "recruiterId" TEXT NOT NULL,
+    "hiringManagerId" TEXT NOT NULL,
     "publishedAt" TIMESTAMP(3),
     "closesAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -351,6 +353,12 @@ CREATE INDEX "jobs_locationId_idx" ON "jobs"("locationId");
 CREATE INDEX "jobs_status_idx" ON "jobs"("status");
 
 -- CreateIndex
+CREATE INDEX "jobs_recruiterId_idx" ON "jobs"("recruiterId");
+
+-- CreateIndex
+CREATE INDEX "jobs_hiringManagerId_idx" ON "jobs"("hiringManagerId");
+
+-- CreateIndex
 CREATE INDEX "job_skills_skillId_idx" ON "job_skills"("skillId");
 
 -- CreateIndex
@@ -433,6 +441,12 @@ ALTER TABLE "jobs" ADD CONSTRAINT "jobs_locationId_fkey" FOREIGN KEY ("locationI
 
 -- AddForeignKey
 ALTER TABLE "jobs" ADD CONSTRAINT "jobs_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "jobs" ADD CONSTRAINT "jobs_recruiterId_fkey" FOREIGN KEY ("recruiterId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "jobs" ADD CONSTRAINT "jobs_hiringManagerId_fkey" FOREIGN KEY ("hiringManagerId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "job_skills" ADD CONSTRAINT "job_skills_jobId_fkey" FOREIGN KEY ("jobId") REFERENCES "jobs"("id") ON DELETE CASCADE ON UPDATE CASCADE;

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "../i18n.jsx";
+import { useNotifications } from "../notifications.jsx";
 import { createCandidate } from "../services/candidatesService";
 import { fetchJobs } from "../services/jobsService";
 import { fetchLookups } from "../services/lookupService";
@@ -19,10 +20,12 @@ const initialCandidateForm = {
 const CandidateCreatePage = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const notifications = useNotifications();
   const [form, setForm] = useState(initialCandidateForm);
   const [resumeFile, setResumeFile] = useState(null);
   const [skills, setSkills] = useState([]);
   const [openJobs, setOpenJobs] = useState([]);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const load = async () => {
@@ -37,8 +40,29 @@ const CandidateCreatePage = () => {
     load();
   }, []);
 
+  const validate = () => {
+    const emailIsValid = /\S+@\S+\.\S+/.test(form.email);
+    if (!form.firstName.trim() || !form.lastName.trim() || !form.email.trim() || !form.jobId) {
+      const message = t("common.required");
+      setError(message);
+      return message;
+    }
+    if (!emailIsValid) {
+      const message = t("common.invalidEmail");
+      setError(message);
+      return message;
+    }
+    setError("");
+    return "";
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
+    const validationMessage = validate();
+    if (validationMessage) {
+      notifications.error(validationMessage);
+      return;
+    }
     const payload = new FormData();
     payload.append("firstName", form.firstName);
     payload.append("lastName", form.lastName);
@@ -53,8 +77,13 @@ const CandidateCreatePage = () => {
       payload.append("resume", resumeFile);
     }
 
-    const candidate = await createCandidate(payload);
-    navigate(`/candidates/${candidate.id}`);
+    try {
+      const candidate = await createCandidate(payload);
+      notifications.success(t("common.successCandidateCreated"));
+      navigate(`/candidates/${candidate.id}`);
+    } catch (_error) {
+      notifications.error(t("common.genericError"));
+    }
   };
 
   return (
@@ -69,7 +98,9 @@ const CandidateCreatePage = () => {
         className="grid gap-3 rounded-[30px] border border-white/80 bg-white/90 p-6 shadow-[0_18px_60px_rgba(15,23,42,0.08)] md:grid-cols-2 xl:grid-cols-4"
       >
         <input
-          className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-cyan-400 focus:bg-white"
+          className={`rounded-2xl border bg-slate-50 px-4 py-3 text-sm outline-none focus:bg-white ${
+            error ? "border-rose-300 focus:border-rose-400" : "border-slate-200 focus:border-cyan-400"
+          }`}
           placeholder={t("candidates.firstName")}
           value={form.firstName}
           onChange={(event) => setForm((prev) => ({ ...prev, firstName: event.target.value }))}
@@ -139,6 +170,7 @@ const CandidateCreatePage = () => {
           <input type="file" accept=".pdf,.doc,.docx" onChange={(event) => setResumeFile(event.target.files?.[0] || null)} />
         </label>
         <div className="xl:col-span-4">
+          {error ? <p className="mb-3 text-sm text-rose-600">{error}</p> : null}
           <button className="rounded-full bg-slate-950 px-5 py-3 text-sm font-medium text-white" type="submit">
             {t("common.create")}
           </button>

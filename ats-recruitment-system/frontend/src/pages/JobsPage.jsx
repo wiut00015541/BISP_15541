@@ -4,7 +4,7 @@ import FilterBar from "../components/FilterBar";
 import { useLanguage } from "../i18n.jsx";
 import { fetchJobs } from "../services/jobsService";
 
-const JobsPage = () => {
+const JobsPage = ({ currentUser }) => {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const [jobs, setJobs] = useState([]);
@@ -14,6 +14,9 @@ const JobsPage = () => {
     sort: "created_at",
     order: "desc",
   });
+
+  const canCreateJob =
+    currentUser?.role === "admin" || (currentUser?.permissions || []).includes("jobs.write");
 
   useEffect(() => {
     const load = async () => {
@@ -31,9 +34,11 @@ const JobsPage = () => {
           <h1 className="text-3xl font-semibold tracking-tight text-slate-950">{t("jobs.title")}</h1>
           <p className="mt-2 text-slate-500">{t("jobs.subtitle")}</p>
         </div>
-        <Link className="rounded-full bg-slate-950 px-5 py-3 text-sm font-medium text-white" to="/jobs/new">
-          {t("jobs.newButton")}
-        </Link>
+        {canCreateJob ? (
+          <Link className="rounded-full bg-slate-950 px-5 py-3 text-sm font-medium text-white" to="/jobs/new">
+            {t("jobs.newButton")}
+          </Link>
+        ) : null}
       </div>
 
       <FilterBar>
@@ -66,13 +71,15 @@ const JobsPage = () => {
               <th className="px-5 py-4 font-medium">{t("jobs.titleColumn")}</th>
               <th className="px-5 py-4 font-medium">{t("jobs.departmentColumn")}</th>
               <th className="px-5 py-4 font-medium">{t("jobs.locationColumn")}</th>
+              <th className="px-5 py-4 font-medium">{t("jobs.recruiterColumn")}</th>
+              <th className="px-5 py-4 font-medium">{t("jobs.hiringManagerColumn")}</th>
               <th className="px-5 py-4 font-medium">{t("jobs.statusColumn")}</th>
             </tr>
           </thead>
           <tbody>
             {jobs.length === 0 ? (
               <tr>
-                <td colSpan="4" className="px-5 py-8 text-center text-slate-500">
+                <td colSpan="6" className="px-5 py-8 text-center text-slate-500">
                   {t("jobs.empty")}
                 </td>
               </tr>
@@ -87,6 +94,12 @@ const JobsPage = () => {
                 <td className="px-5 py-4 font-medium text-slate-900">{job.title}</td>
                 <td className="px-5 py-4 text-slate-600">{job.department?.name}</td>
                 <td className="px-5 py-4 text-slate-600">{job.location?.name}</td>
+                <td className="px-5 py-4 text-slate-600">
+                  {job.recruiter ? `${job.recruiter.firstName} ${job.recruiter.lastName}` : "-"}
+                </td>
+                <td className="px-5 py-4 text-slate-600">
+                  {job.hiringManager ? `${job.hiringManager.firstName} ${job.hiringManager.lastName}` : "-"}
+                </td>
                 <td className="px-5 py-4">
                   <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">
                     {job.status}

@@ -14,5 +14,6 @@ router.post("/", requirePermission("candidates.write"), uploadResume.single("res
 router.patch("/:id", requirePermission("candidates.write"), uploadResume.single("resume"), candidatesController.updateCandidate);
 router.delete("/:id", requirePermission("candidates.write"), candidatesController.deleteCandidate);
 router.post("/:id/notes", requirePermission("candidates.write"), candidatesController.addCandidateNote);
+router.post("/:id/communications", requirePermission("candidates.write"), candidatesController.sendCommunication);
 
 module.exports = router;

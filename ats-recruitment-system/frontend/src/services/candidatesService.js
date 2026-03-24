@@ -27,3 +27,13 @@ export const updateCandidate = async (id, payload) => {
 export const deleteCandidate = async (id) => {
   await api.delete(`/candidates/${id}`);
 };
+
+export const addCandidateReview = async (candidateId, payload) => {
+  const { data } = await api.post(`/candidates/${candidateId}/notes`, payload);
+  return data;
+};
+
+export const sendCandidateCommunication = async (candidateId, payload) => {
+  const { data } = await api.post(`/candidates/${candidateId}/communications`, payload);
+  return data;
+};
