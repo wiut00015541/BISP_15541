@@ -34,29 +34,14 @@ const LoginPage = ({ onLogin }) => {
       </div>
 
       <div className="relative grid w-full max-w-6xl gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-        <section className="rounded-[36px] bg-slate-950 p-8 text-white shadow-[0_30px_120px_rgba(15,23,42,0.35)]">
-          <div className="flex items-center justify-between gap-4">
-            <div>
+        <section className="relative min-w-0 overflow-hidden rounded-[36px] bg-slate-950 p-8 pb-24 text-white shadow-[0_30px_120px_rgba(15,23,42,0.35)]">
+          <div className="flex min-h-full min-w-0 flex-col gap-6">
+            <div className="min-w-0 text-center lg:text-left">
               <p className="text-xs uppercase tracking-[0.34em] text-cyan-200">{t("meta.workspace")}</p>
-              <h1 className="mt-4 max-w-xl text-4xl font-semibold leading-tight">{t("login.title")}</h1>
-              <p className="mt-4 max-w-xl text-base text-slate-300">{t("login.subtitle")}</p>
-            </div>
-
-            <div className="rounded-full border border-white/10 bg-white/5 p-1">
-              <button
-                type="button"
-                className={`rounded-full px-3 py-1.5 text-sm ${language === "en" ? "bg-white text-slate-950" : "text-slate-300"}`}
-                onClick={() => setLanguage("en")}
-              >
-                EN
-              </button>
-              <button
-                type="button"
-                className={`rounded-full px-3 py-1.5 text-sm ${language === "ru" ? "bg-white text-slate-950" : "text-slate-300"}`}
-                onClick={() => setLanguage("ru")}
-              >
-                RU
-              </button>
+              <h1 className="mt-4 max-w-full text-3xl font-semibold leading-tight sm:max-w-xl sm:text-4xl">
+                {t("login.title")}
+              </h1>
+              <p className="mt-4 max-w-full text-base text-slate-300 sm:max-w-xl">{t("login.subtitle")}</p>
             </div>
           </div>
 
@@ -71,13 +56,35 @@ const LoginPage = ({ onLogin }) => {
               <p className="text-sm font-medium text-white">{t("login.featureThree")}</p>
             </div>
           </div>
+
+          <div className="absolute bottom-6 right-6">
+            <div className="rounded-full border border-white/10 bg-white/5 p-0.5 shadow-sm shadow-black/10 backdrop-blur-sm">
+              <button
+                type="button"
+                className={`rounded-full px-2.5 py-1 text-xs font-medium transition ${
+                  language === "en" ? "bg-white text-slate-950" : "text-slate-300 hover:text-white"
+                }`}
+                onClick={() => setLanguage("en")}
+              >
+                EN
+              </button>
+              <button
+                type="button"
+                className={`rounded-full px-2.5 py-1 text-xs font-medium transition ${
+                  language === "ru" ? "bg-white text-slate-950" : "text-slate-300 hover:text-white"
+                }`}
+                onClick={() => setLanguage("ru")}
+              >
+                RU
+              </button>
+            </div>
+          </div>
         </section>
 
         <form
           onSubmit={handleSubmit}
           className="rounded-[36px] border border-white/80 bg-white/90 p-8 shadow-[0_24px_80px_rgba(15,23,42,0.1)] backdrop-blur-xl"
         >
-          <p className="text-xs uppercase tracking-[0.32em] text-cyan-700">{t("common.language")}</p>
           <h2 className="mt-4 text-3xl font-semibold text-slate-950">{t("login.panelTitle")}</h2>
           <p className="mt-3 text-sm text-slate-500">{t("login.panelSubtitle")}</p>
 

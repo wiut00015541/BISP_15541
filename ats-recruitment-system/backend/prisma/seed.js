@@ -1,5 +1,25 @@
-const prisma = require("../config/prisma");
+const { PrismaClient } = require("@prisma/client");
 const bcrypt = require("bcryptjs");
+
+const buildSeedDatabaseUrl = () => {
+  const baseUrl = process.env.DIRECT_URL || process.env.DATABASE_URL;
+
+  if (!baseUrl) {
+    throw new Error("DIRECT_URL or DATABASE_URL must be set before running seed");
+  }
+
+  const separator = baseUrl.includes("?") ? "&" : "?";
+  return `${baseUrl}${separator}connection_limit=1&pool_timeout=60`;
+};
+
+const prisma = new PrismaClient({
+  log: ["warn", "error"],
+  datasources: {
+    db: {
+      url: buildSeedDatabaseUrl(),
+    },
+  },
+});
 
 const permissions = [
   { key: "users.read", label: "View Users" },
@@ -67,25 +87,71 @@ const skills = [
   "Recruiting",
   "Sourcing",
 ];
+const candidateSources = [
+  { id: "manual", code: "MANUAL", name: "Manual entry" },
+  { id: "linkedin", code: "LINKEDIN", name: "LinkedIn" },
+  { id: "referral", code: "REFERRAL", name: "Employee referral" },
+  { id: "career_site", code: "CAREER_SITE", name: "Career site" },
+  { id: "telegram", code: "TELEGRAM", name: "Telegram" },
+];
+const jobTypes = [
+  { id: "full_time", code: "FULL_TIME", name: "Full time" },
+  { id: "part_time", code: "PART_TIME", name: "Part time" },
+  { id: "contract", code: "CONTRACT", name: "Contract" },
+  { id: "internship", code: "INTERNSHIP", name: "Internship" },
+];
+const jobStatuses = [
+  { id: "draft", code: "DRAFT", name: "Draft" },
+  { id: "open", code: "OPEN", name: "Open" },
+  { id: "closed", code: "CLOSED", name: "Closed" },
+  { id: "on_hold", code: "ON_HOLD", name: "On hold" },
+];
+const interviewStatuses = [
+  { id: "scheduled", code: "SCHEDULED", name: "Scheduled" },
+  { id: "completed", code: "COMPLETED", name: "Completed" },
+  { id: "canceled", code: "CANCELED", name: "Canceled" },
+  { id: "no_show", code: "NO_SHOW", name: "No show" },
+];
+const emailTemplates = [
+  {
+    id: "candidate_outreach",
+    code: "candidate_outreach",
+    name: "Candidate outreach",
+    subject: "Update regarding your application",
+    heading: "Application update",
+    intro: "Hello {{candidateFirstName}}, we wanted to share an update regarding your application.",
+    closing: "{{senderName}}",
+  },
+  {
+    id: "interview_invitation",
+    code: "interview_invitation",
+    name: "Interview invitation",
+    subject: "Interview scheduled for {{jobTitle}}",
+    heading: "Interview scheduled for {{jobTitle}}",
+    intro:
+      "Hello {{candidateFirstName}}, your interview for {{jobTitle}} has been scheduled for {{formattedDate}}.",
+    closing: "ATS Recruitment Team",
+  },
+];
 
 async function main() {
-  const [adminRole, recruiterRole, hiringManagerRole] = await Promise.all([
-    prisma.role.upsert({
-      where: { name: "admin" },
-      update: {},
-      create: { name: "admin", description: "System administrator" },
-    }),
-    prisma.role.upsert({
-      where: { name: "recruiter" },
-      update: {},
-      create: { name: "recruiter", description: "Recruitment specialist" },
-    }),
-    prisma.role.upsert({
-      where: { name: "hiring_manager" },
-      update: {},
-      create: { name: "hiring_manager", description: "Hiring manager" },
-    }),
-  ]);
+  const adminRole = await prisma.role.upsert({
+    where: { name: "admin" },
+    update: {},
+    create: { name: "admin", description: "System administrator" },
+  });
+
+  const recruiterRole = await prisma.role.upsert({
+    where: { name: "recruiter" },
+    update: {},
+    create: { name: "recruiter", description: "Recruitment specialist" },
+  });
+
+  const hiringManagerRole = await prisma.role.upsert({
+    where: { name: "hiring_manager" },
+    update: {},
+    create: { name: "hiring_manager", description: "Hiring manager" },
+  });
 
   const permissionRows = [];
   for (const permission of permissions) {
@@ -189,6 +255,36 @@ async function main() {
       create: { name: skillName },
     });
   }
+
+  await prisma.systemSetting.upsert({
+    where: { key: "candidate_sources" },
+    update: {},
+    create: { key: "candidate_sources", value: JSON.stringify(candidateSources) },
+  });
+
+  await prisma.systemSetting.upsert({
+    where: { key: "job_types" },
+    update: {},
+    create: { key: "job_types", value: JSON.stringify(jobTypes) },
+  });
+
+  await prisma.systemSetting.upsert({
+    where: { key: "job_statuses" },
+    update: {},
+    create: { key: "job_statuses", value: JSON.stringify(jobStatuses) },
+  });
+
+  await prisma.systemSetting.upsert({
+    where: { key: "interview_statuses" },
+    update: {},
+    create: { key: "interview_statuses", value: JSON.stringify(interviewStatuses) },
+  });
+
+  await prisma.systemSetting.upsert({
+    where: { key: "email_templates" },
+    update: {},
+    create: { key: "email_templates", value: JSON.stringify(emailTemplates) },
+  });
 
   const passwordHash = await bcrypt.hash("Admin@123", 10);
   const recruiterPasswordHash = await bcrypt.hash("Recruiter@123", 10);

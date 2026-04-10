@@ -21,6 +21,15 @@ const getCandidateById = async (req, res, next) => {
   }
 };
 
+const analyzeResume = async (req, res, next) => {
+  try {
+    const result = await candidateService.analyzeCandidateResume(req.params.id, req.params.resumeId, req.user);
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
 const createCandidate = async (req, res, next) => {
   try {
     const candidate = await candidateService.createCandidate(req.body, req.file, req.user.id, req.user);
@@ -75,6 +84,7 @@ const sendCommunication = async (req, res, next) => {
 module.exports = {
   getCandidates,
   getCandidateById,
+  analyzeResume,
   createCandidate,
   updateCandidate,
   deleteCandidate,

@@ -1,9 +1,17 @@
+const prisma = require("../config/prisma");
 const nodemailer = require("nodemailer");
 
 let transporter;
+const EMAIL_TEMPLATE_KEY = "email_templates";
 
 const getEmailConfig = () => {
-  const required = ["SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASS", "EMAIL_FROM"];
+  const required = ["SMTP_USER", "SMTP_PASS", "EMAIL_FROM"];
+  const usesService = Boolean(process.env.SMTP_SERVICE);
+
+  if (!usesService) {
+    required.push("SMTP_HOST", "SMTP_PORT");
+  }
+
   const missing = required.filter((key) => !process.env[key]);
 
   return {
@@ -12,12 +20,20 @@ const getEmailConfig = () => {
   };
 };
 
-const getTransporter = () => {
-  if (transporter) {
-    return transporter;
+const buildTransportConfig = () => {
+  const service = process.env.SMTP_SERVICE;
+
+  if (service) {
+    return {
+      service,
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+    };
   }
 
-  transporter = nodemailer.createTransport({
+  return {
     host: process.env.SMTP_HOST,
     port: Number(process.env.SMTP_PORT || 587),
     secure: process.env.SMTP_SECURE === "true",
@@ -25,9 +41,36 @@ const getTransporter = () => {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASS,
     },
-  });
+  };
+};
+
+const getTransporter = () => {
+  if (transporter) {
+    return transporter;
+  }
+
+  transporter = nodemailer.createTransport(buildTransportConfig());
 
   return transporter;
+};
+
+const verifyEmailConnection = async () => {
+  const config = getEmailConfig();
+  if (!config.isConfigured) {
+    const error = new Error(`Email service is not configured. Missing: ${config.missing.join(", ")}`);
+    error.status = 503;
+    throw error;
+  }
+
+  await getTransporter().verify();
+  return {
+    ok: true,
+    service: process.env.SMTP_SERVICE || null,
+    host: process.env.SMTP_HOST,
+    port: Number(process.env.SMTP_PORT || 587),
+    secure: process.env.SMTP_SECURE === "true",
+    from: process.env.EMAIL_FROM,
+  };
 };
 
 const renderEmailTemplate = ({ heading, intro, sections = [], closing = "ATS Recruitment Team" }) => {
@@ -49,6 +92,37 @@ const renderEmailTemplate = ({ heading, intro, sections = [], closing = "ATS Rec
       </div>
     </div>
   `;
+};
+
+const interpolate = (value, variables = {}) =>
+  String(value || "").replace(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g, (_match, token) => variables[token] || "");
+
+const getManagedEmailTemplate = async (code, fallback = {}, variables = {}) => {
+  const setting = await prisma.systemSetting.findUnique({
+    where: { key: EMAIL_TEMPLATE_KEY },
+  });
+
+  let templates = [];
+  try {
+    templates = JSON.parse(setting?.value || "[]");
+  } catch (_error) {
+    templates = [];
+  }
+
+  const managedTemplate = templates.find((item) => item.code === code || item.id === code) || {};
+  const merged = {
+    ...fallback,
+    ...managedTemplate,
+  };
+
+  return {
+    code: merged.code || code,
+    name: merged.name || fallback.name || code,
+    subject: interpolate(merged.subject || fallback.subject || "", variables),
+    heading: interpolate(merged.heading || fallback.heading || merged.subject || "", variables),
+    intro: interpolate(merged.intro || fallback.intro || "", variables),
+    closing: interpolate(merged.closing || fallback.closing || "ATS Recruitment Team", variables),
+  };
 };
 
 const sendEmail = async ({ to, subject, text, html }) => {
@@ -73,5 +147,7 @@ const sendEmail = async ({ to, subject, text, html }) => {
 module.exports = {
   sendEmail,
   getEmailConfig,
+  verifyEmailConnection,
   renderEmailTemplate,
+  getManagedEmailTemplate,
 };

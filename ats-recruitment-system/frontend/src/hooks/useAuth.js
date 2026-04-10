@@ -30,11 +30,17 @@ export const useAuth = () => {
     localStorage.removeItem("ats_user");
   };
 
+  const updateUser = (nextUser) => {
+    setUser(nextUser);
+    localStorage.setItem("ats_user", JSON.stringify(nextUser));
+  };
+
   return {
     token,
     user,
     isAuthenticated: Boolean(token),
     login,
     logout,
+    updateUser,
   };
 };

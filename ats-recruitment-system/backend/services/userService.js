@@ -6,7 +6,32 @@ const includeUserRelations = {
   department: true,
 };
 
+const includeUserWithPermissions = {
+  role: {
+    include: {
+      rolePermissions: {
+        include: {
+          permission: true,
+        },
+      },
+    },
+  },
+  department: true,
+};
+
 const isTruthyBoolean = (value) => value === true || value === "true";
+
+const sanitizeCurrentUser = (user) => ({
+  id: user.id,
+  firstName: user.firstName,
+  lastName: user.lastName,
+  email: user.email,
+  role: user.role?.name || null,
+  permissions: user.role?.rolePermissions?.map((item) => item.permission.key) || [],
+  department: user.department ? { id: user.department.id, name: user.department.name } : null,
+  createdAt: user.createdAt,
+  lastLoginAt: user.lastLoginAt,
+});
 
 const validateUserPayload = async (payload, existingUserId = null) => {
   const errors = {};
@@ -137,6 +162,79 @@ const getUsers = async (query) => {
   });
 };
 
+const getCurrentUser = async (userId) => {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    include: includeUserWithPermissions,
+  });
+
+  if (!user) {
+    const error = new Error("User not found");
+    error.status = 404;
+    throw error;
+  }
+
+  return sanitizeCurrentUser(user);
+};
+
+const updateCurrentUser = async (userId, payload) => {
+  const errors = {};
+
+  if (!payload.firstName?.trim()) {
+    errors.firstName = "First name is required";
+  }
+
+  if (!payload.lastName?.trim()) {
+    errors.lastName = "Last name is required";
+  }
+
+  if (!payload.email?.trim()) {
+    errors.email = "Email is required";
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payload.email)) {
+    errors.email = "Email format is invalid";
+  }
+
+  if (payload.password && payload.password.trim().length < 8) {
+    errors.password = "Password must be at least 8 characters";
+  }
+
+  const existingUser = await prisma.user.findFirst({
+    where: {
+      email: payload.email,
+      id: { not: userId },
+    },
+  });
+
+  if (existingUser) {
+    errors.email = "Email is already in use";
+  }
+
+  if (Object.keys(errors).length > 0) {
+    const error = new Error("Validation failed");
+    error.status = 400;
+    error.details = errors;
+    throw error;
+  }
+
+  const data = {
+    firstName: payload.firstName.trim(),
+    lastName: payload.lastName.trim(),
+    email: payload.email.trim(),
+  };
+
+  if (payload.password?.trim()) {
+    data.passwordHash = await bcrypt.hash(payload.password.trim(), 10);
+  }
+
+  const user = await prisma.user.update({
+    where: { id: userId },
+    data,
+    include: includeUserWithPermissions,
+  });
+
+  return sanitizeCurrentUser(user);
+};
+
 const createUser = async (payload) => {
   const role = await validateUserPayload(payload);
   const passwordHash = await bcrypt.hash(payload.password, 10);
@@ -207,7 +305,9 @@ const deleteUser = async (userId, actorUserId) => {
 
 module.exports = {
   getUsers,
+  getCurrentUser,
   createUser,
+  updateCurrentUser,
   updateUser,
   toggleUserStatus,
   deleteUser,

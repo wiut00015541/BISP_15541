@@ -65,7 +65,8 @@ const JobsPage = ({ currentUser }) => {
       </FilterBar>
 
       <div className="overflow-hidden rounded-[30px] border border-white/80 bg-white/90 shadow-[0_18px_60px_rgba(15,23,42,0.08)] backdrop-blur-xl">
-        <table className="min-w-full text-sm">
+        <div className="overflow-x-auto">
+        <table className="min-w-[920px] w-full text-sm">
           <thead className="bg-slate-950 text-left text-white">
             <tr>
               <th className="px-5 py-4 font-medium">{t("jobs.titleColumn")}</th>
@@ -109,6 +110,7 @@ const JobsPage = ({ currentUser }) => {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
     </section>
   );

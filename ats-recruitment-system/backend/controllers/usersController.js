@@ -9,10 +9,28 @@ const getUsers = async (req, res, next) => {
   }
 };
 
+const getCurrentUser = async (req, res, next) => {
+  try {
+    const user = await userService.getCurrentUser(req.user.id);
+    res.status(200).json(user);
+  } catch (error) {
+    next(error);
+  }
+};
+
 const createUser = async (req, res, next) => {
   try {
     const user = await userService.createUser(req.body);
     res.status(201).json(user);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const updateCurrentUser = async (req, res, next) => {
+  try {
+    const user = await userService.updateCurrentUser(req.user.id, req.body);
+    res.status(200).json(user);
   } catch (error) {
     next(error);
   }
@@ -47,7 +65,9 @@ const deleteUser = async (req, res, next) => {
 
 module.exports = {
   getUsers,
+  getCurrentUser,
   createUser,
+  updateCurrentUser,
   updateUser,
   toggleUserStatus,
   deleteUser,

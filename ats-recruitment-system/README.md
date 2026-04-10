@@ -139,3 +139,34 @@ The Prisma schema includes 23 models (20+ required), including all requested tab
 - Build command: `npm run build`
 - Output directory: `dist`
 - Environment variable: `VITE_API_URL` pointing to Render backend URL
+# Email setup
+
+Add these variables to `backend/.env`:
+
+```env
+SMTP_HOST=""
+SMTP_PORT="587"
+SMTP_USER=""
+SMTP_PASS=""
+SMTP_SECURE="false"
+EMAIL_FROM=""
+```
+
+After configuring them, you can verify the connection with:
+
+```http
+GET /api/email/status
+```
+
+And send a test email with:
+
+```http
+POST /api/email/test
+Content-Type: application/json
+
+{
+  "to": "your-email@example.com"
+}
+```
+
+These endpoints require an authenticated admin user with `settings.write`.

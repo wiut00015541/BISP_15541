@@ -3,7 +3,7 @@ const prisma = require("../config/prisma");
 
 const analyzeResume = async (req, res, next) => {
   try {
-    const analysis = await aiService.analyzeResume(req.body.resumeText);
+    const analysis = await aiService.analyzeResume({ resumeText: req.body.resumeText });
 
     if (req.body.candidateId) {
       await prisma.resume.create({

@@ -11,10 +11,13 @@ import PipelinePage from "./pages/PipelinePage";
 import ReportsPage from "./pages/ReportsPage";
 import SettingsPage from "./pages/SettingsPage";
 import JobCreatePage from "./pages/JobCreatePage";
+import JobDetailsPage from "./pages/JobDetailsPage";
 import JobPipelinePage from "./pages/JobPipelinePage";
 import CandidateCreatePage from "./pages/CandidateCreatePage";
 import CandidateProfilePage from "./pages/CandidateProfilePage";
 import UsersPage from "./pages/UsersPage";
+import OptionsPage from "./pages/OptionsPage";
+import ProfilePage from "./pages/ProfilePage";
 
 const ProtectedApp = ({ auth }) => {
   return (
@@ -23,14 +26,20 @@ const ProtectedApp = ({ auth }) => {
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/jobs" element={<JobsPage currentUser={auth.user} />} />
         <Route path="/jobs/new" element={<JobCreatePage currentUser={auth.user} />} />
-        <Route path="/jobs/:id" element={<JobPipelinePage />} />
+        <Route path="/jobs/:id/edit" element={<JobCreatePage currentUser={auth.user} />} />
+        <Route path="/jobs/:id/pipeline" element={<JobPipelinePage currentUser={auth.user} />} />
+        <Route path="/jobs/:id" element={<JobDetailsPage currentUser={auth.user} />} />
         <Route path="/candidates" element={<CandidatesPage />} />
         <Route path="/candidates/new" element={<CandidateCreatePage />} />
         <Route path="/candidates/:id" element={<CandidateProfilePage />} />
         <Route path="/pipeline" element={<PipelinePage />} />
         <Route path="/reports" element={<ReportsPage />} />
-        <Route path="/settings" element={<SettingsPage />} />
-        <Route path="/users" element={<UsersPage currentUser={auth.user} />} />
+        <Route path="/settings" element={<SettingsPage currentUser={auth.user} />} />
+        <Route path="/settings/profile" element={<ProfilePage currentUser={auth.user} onUserUpdate={auth.updateUser} />} />
+        <Route path="/settings/users" element={<UsersPage currentUser={auth.user} />} />
+        <Route path="/settings/options" element={<OptionsPage currentUser={auth.user} />} />
+        <Route path="/users" element={<Navigate to="/settings/users" replace />} />
+        <Route path="/options" element={<Navigate to="/settings/options" replace />} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </Layout>

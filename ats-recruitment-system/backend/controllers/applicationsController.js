@@ -33,6 +33,15 @@ const updateStage = async (req, res, next) => {
   }
 };
 
+const revertHired = async (req, res, next) => {
+  try {
+    const application = await applicationService.revertHiredApplication(req.params.id, req.user.id, req.user);
+    res.status(200).json(application);
+  } catch (error) {
+    next(error);
+  }
+};
+
 const scheduleInterview = async (req, res, next) => {
   try {
     const interview = await applicationService.scheduleInterview(req.params.id, req.body, req.user);
@@ -55,6 +64,7 @@ module.exports = {
   getApplications,
   createApplication,
   updateStage,
+  revertHired,
   scheduleInterview,
   addInterviewFeedback,
 };

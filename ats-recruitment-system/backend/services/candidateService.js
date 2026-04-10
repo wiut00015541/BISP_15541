@@ -1,7 +1,9 @@
+const path = require("path");
 const prisma = require("../config/prisma");
 const { parsePagination, parseSort } = require("../utils/apiFeatures");
 const { isAdmin } = require("../utils/accessScope");
-const { sendEmail, renderEmailTemplate } = require("../utils/emailService");
+const { sendEmail, renderEmailTemplate, getManagedEmailTemplate } = require("../utils/emailService");
+const { analyzeResume } = require("./aiService");
 
 const normalizeSkillIds = (skillIds) => {
   if (!skillIds) {
@@ -239,6 +241,68 @@ const getCandidateById = async (id, user) => {
   return mapCandidateProfile(candidate);
 };
 
+const analyzeCandidateResume = async (candidateId, resumeId, user) => {
+  const candidate = await prisma.candidate.findFirst({
+    where: {
+      id: candidateId,
+      ...buildAccessibleCandidateWhere({}, user),
+    },
+    include: {
+      resumes: true,
+    },
+  });
+
+  if (!candidate) {
+    const error = new Error("Candidate not found");
+    error.status = 404;
+    throw error;
+  }
+
+  const resume = candidate.resumes.find((item) => item.id === resumeId);
+
+  if (!resume) {
+    const error = new Error("Resume not found");
+    error.status = 404;
+    throw error;
+  }
+
+  if (!resume.rawText && !resume.fileUrl) {
+    const error = new Error("Resume file or extracted text is required for AI analysis");
+    error.status = 400;
+    throw error;
+  }
+
+  const absoluteFilePath = resume.fileUrl
+    ? path.join(__dirname, "..", resume.fileUrl.replace(/^\/+/, ""))
+    : null;
+
+  const analysis = await analyzeResume({
+    resumeText: resume.rawText,
+    filePath: absoluteFilePath,
+    filename: resume.fileUrl ? path.basename(resume.fileUrl) : undefined,
+  });
+
+  const updatedResume = await prisma.resume.update({
+    where: { id: resume.id },
+    data: {
+      aiSummary: analysis.summary,
+      aiSkills: analysis.skills,
+      aiExperience: analysis.experience,
+      parsedAt: new Date(),
+    },
+    include: {
+      uploadedBy: {
+        select: { id: true, firstName: true, lastName: true, email: true },
+      },
+    },
+  });
+
+  return {
+    resume: updatedResume,
+    analysis,
+  };
+};
+
 const createCandidate = async (payload, file, uploadedById, user) => {
   const skills = normalizeSkillIds(payload.skillIds);
   validateCandidatePayload(payload);
@@ -267,47 +331,60 @@ const createCandidate = async (payload, file, uploadedById, user) => {
     throw error;
   }
 
-  const candidate = await prisma.$transaction(async (tx) => {
-    const createdCandidate = await tx.candidate.create({
-      data: {
-        firstName: payload.firstName.trim(),
-        lastName: payload.lastName.trim(),
-        email: payload.email.trim(),
-        phone: payload.phone,
-        yearsExperience: payload.yearsExperience ? Number(payload.yearsExperience) : null,
-        source: payload.source,
-        assignedToId: payload.assignedToId || job.recruiterId,
-        skills: {
-          create: skills.map((skillId) => ({
-            skillId,
-          })),
+  let candidate;
+
+  try {
+    candidate = await prisma.$transaction(async (tx) => {
+      const createdCandidate = await tx.candidate.create({
+        data: {
+          firstName: payload.firstName.trim(),
+          lastName: payload.lastName.trim(),
+          email: payload.email.trim(),
+          phone: payload.phone,
+          yearsExperience: payload.yearsExperience ? Number(payload.yearsExperience) : null,
+          source: payload.source,
+          assignedToId: payload.assignedToId || job.recruiterId,
+          skills: {
+            create: skills.map((skillId) => ({
+              skillId,
+            })),
+          },
         },
-      },
-      include: {
-        skills: { include: { skill: true } },
-      },
-    });
+        include: {
+          skills: { include: { skill: true } },
+        },
+      });
 
-    const application = await tx.application.create({
-      data: {
-        candidateId: createdCandidate.id,
-        jobId: payload.jobId,
-        currentStageId: appliedStage.id,
-        source: payload.source || "manual",
-      },
-    });
+      const application = await tx.application.create({
+        data: {
+          candidateId: createdCandidate.id,
+          jobId: payload.jobId,
+          currentStageId: appliedStage.id,
+          source: payload.source || "manual",
+        },
+      });
 
-    await tx.applicationHistory.create({
-      data: {
-        applicationId: application.id,
-        toStageId: appliedStage.id,
-        changedById: uploadedById,
-        note: "Candidate manually added to job",
-      },
-    });
+      await tx.applicationHistory.create({
+        data: {
+          applicationId: application.id,
+          toStageId: appliedStage.id,
+          changedById: uploadedById,
+          note: "Candidate manually added to job",
+        },
+      });
 
-    return createdCandidate;
-  });
+      return createdCandidate;
+    });
+  } catch (error) {
+    if (error?.code === "P2002") {
+      const duplicateError = new Error("A candidate with this email already exists");
+      duplicateError.status = 409;
+      duplicateError.details = { email: "This email is already used by another candidate" };
+      throw duplicateError;
+    }
+
+    throw error;
+  }
 
   if (file) {
     await prisma.resume.create({
@@ -448,12 +525,25 @@ const sendCandidateCommunication = async (candidateId, payload, sender, user) =>
 
   const senderName = `${sender.firstName || ""} ${sender.lastName || ""}`.trim() || sender.email;
 
+  const outreachTemplate = await getManagedEmailTemplate(
+    "candidate_outreach",
+    {
+      heading: payload.subject.trim(),
+      closing: "{{senderName}}",
+    },
+    {
+      candidateFirstName: candidate.firstName,
+      candidateLastName: candidate.lastName,
+      senderName,
+    }
+  );
+
   await sendEmail({
     to: candidate.email,
     subject: payload.subject.trim(),
     text: `${payload.body.trim()}\n\nSent by ${senderName}`,
     html: renderEmailTemplate({
-      heading: payload.subject.trim(),
+      heading: outreachTemplate.heading || payload.subject.trim(),
       intro: payload.body.trim().replace(/\n/g, "<br />"),
       sections: [
         {
@@ -465,7 +555,7 @@ const sendCandidateCommunication = async (candidateId, payload, sender, user) =>
           value: senderName,
         },
       ],
-      closing: senderName,
+      closing: outreachTemplate.closing || senderName,
     }),
   });
 
@@ -498,6 +588,7 @@ const sendCandidateCommunication = async (candidateId, payload, sender, user) =>
 module.exports = {
   getCandidates,
   getCandidateById,
+  analyzeCandidateResume,
   createCandidate,
   updateCandidate,
   deleteCandidate,

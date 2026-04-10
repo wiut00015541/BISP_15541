@@ -10,7 +10,7 @@ const NotificationTray = () => {
   const { notifications, removeNotification } = useNotifications();
 
   return (
-    <div className="pointer-events-none fixed right-6 top-24 z-50 flex w-full max-w-sm flex-col gap-3">
+    <div className="pointer-events-none fixed inset-x-4 top-24 z-50 flex max-w-sm flex-col gap-3 sm:left-auto sm:right-6">
       {notifications.map((notification) => (
         <div
           key={notification.id}

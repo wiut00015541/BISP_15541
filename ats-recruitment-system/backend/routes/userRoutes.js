@@ -6,6 +6,8 @@ const { requirePermission } = require("../middleware/rbacMiddleware");
 const router = express.Router();
 
 router.use(authMiddleware);
+router.get("/me", usersController.getCurrentUser);
+router.patch("/me", usersController.updateCurrentUser);
 router.get("/", requirePermission("users.read"), usersController.getUsers);
 router.post("/", requirePermission("users.write"), usersController.createUser);
 router.patch("/:id", requirePermission("users.write"), usersController.updateUser);

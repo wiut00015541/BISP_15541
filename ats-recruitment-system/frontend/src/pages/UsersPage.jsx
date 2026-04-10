@@ -174,7 +174,8 @@ const UsersPage = ({ currentUser }) => {
           </div>
 
           <div className="overflow-hidden rounded-[24px] border border-slate-100">
-            <table className="min-w-full text-sm">
+            <div className="overflow-x-auto">
+            <table className="min-w-[900px] w-full text-sm">
               <thead className="bg-slate-950 text-left text-white">
                 <tr>
                   <th className="px-4 py-3 font-medium">{t("users.name")}</th>
@@ -204,7 +205,7 @@ const UsersPage = ({ currentUser }) => {
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex min-w-[220px] flex-wrap gap-2">
                         <button
                           type="button"
                           className="rounded-full border border-slate-200 px-3 py-1 text-xs font-medium text-slate-700"
@@ -235,6 +236,7 @@ const UsersPage = ({ currentUser }) => {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         </div>
 
@@ -252,12 +254,12 @@ const UsersPage = ({ currentUser }) => {
               </p>
             </div>
             {editingUserId ? (
-              <button
-                type="button"
-                className="rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700"
-                onClick={resetForm}
-              >
-                {t("common.cancel")}
+            <button
+              type="button"
+              className="shrink-0 rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700"
+              onClick={resetForm}
+            >
+              {t("common.cancel")}
               </button>
             ) : null}
           </div>
@@ -318,7 +320,7 @@ const UsersPage = ({ currentUser }) => {
             {errors.roleName ? <p className="text-sm text-rose-600">{errors.roleName}</p> : null}
           </div>
 
-          <button className="rounded-full bg-slate-950 px-5 py-3 text-sm font-medium text-white" type="submit">
+          <button className="w-full rounded-full bg-slate-950 px-5 py-3 text-sm font-medium text-white sm:w-auto" type="submit">
             {editingUserId ? t("users.saveChanges") : t("users.createButton")}
           </button>
         </form>

@@ -37,3 +37,8 @@ export const sendCandidateCommunication = async (candidateId, payload) => {
   const { data } = await api.post(`/candidates/${candidateId}/communications`, payload);
   return data;
 };
+
+export const analyzeCandidateResume = async (candidateId, resumeId) => {
+  const { data } = await api.post(`/candidates/${candidateId}/resumes/${resumeId}/analyze`);
+  return data;
+};

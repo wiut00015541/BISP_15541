@@ -10,6 +10,7 @@ router.use(authMiddleware);
 router.get("/", requirePermission("applications.read"), applicationsController.getApplications);
 router.post("/", requirePermission("applications.write"), applicationsController.createApplication);
 router.patch("/:id/stage", requirePermission("applications.write"), applicationsController.updateStage);
+router.patch("/:id/revert-hired", requirePermission("applications.write"), applicationsController.revertHired);
 router.post("/:id/interviews", requirePermission("applications.write"), applicationsController.scheduleInterview);
 router.post("/interviews/:id/feedback", requirePermission("applications.write"), applicationsController.addInterviewFeedback);
 

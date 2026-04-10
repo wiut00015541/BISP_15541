@@ -1,12 +1,4 @@
 -- CreateEnum
-CREATE TYPE "JobType" AS ENUM ('FULL_TIME', 'PART_TIME', 'CONTRACT', 'INTERNSHIP');
-
--- CreateEnum
-CREATE TYPE "JobStatus" AS ENUM ('DRAFT', 'OPEN', 'CLOSED', 'ON_HOLD');
-
--- CreateEnum
-CREATE TYPE "InterviewStatus" AS ENUM ('SCHEDULED', 'COMPLETED', 'CANCELED', 'NO_SHOW');
-
 -- CreateTable
 CREATE TABLE "users" (
     "id" TEXT NOT NULL,
@@ -92,8 +84,8 @@ CREATE TABLE "jobs" (
     "id" TEXT NOT NULL,
     "title" TEXT NOT NULL,
     "description" TEXT NOT NULL,
-    "type" "JobType" NOT NULL,
-    "status" "JobStatus" NOT NULL DEFAULT 'DRAFT',
+    "type" TEXT NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'DRAFT',
     "minSalary" INTEGER,
     "maxSalary" INTEGER,
     "openings" INTEGER NOT NULL DEFAULT 1,
@@ -229,7 +221,7 @@ CREATE TABLE "interviews" (
     "scheduledAt" TIMESTAMP(3) NOT NULL,
     "durationMinutes" INTEGER NOT NULL DEFAULT 60,
     "meetingLink" TEXT,
-    "status" "InterviewStatus" NOT NULL DEFAULT 'SCHEDULED',
+    "status" TEXT NOT NULL DEFAULT 'SCHEDULED',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "interviews_pkey" PRIMARY KEY ("id")

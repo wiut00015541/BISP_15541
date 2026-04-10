@@ -10,6 +10,7 @@ router.use(authMiddleware);
 
 router.get("/", requirePermission("candidates.read"), candidatesController.getCandidates);
 router.get("/:id", requirePermission("candidates.read"), candidatesController.getCandidateById);
+router.post("/:id/resumes/:resumeId/analyze", requirePermission("candidates.write"), candidatesController.analyzeResume);
 router.post("/", requirePermission("candidates.write"), uploadResume.single("resume"), candidatesController.createCandidate);
 router.patch("/:id", requirePermission("candidates.write"), uploadResume.single("resume"), candidatesController.updateCandidate);
 router.delete("/:id", requirePermission("candidates.write"), candidatesController.deleteCandidate);

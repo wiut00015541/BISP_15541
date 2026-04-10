@@ -110,7 +110,7 @@ const CandidatesPage = () => {
         })}
       </div>
 
-      <div className="flex items-center gap-2 text-sm text-slate-600">
+      <div className="flex flex-wrap items-center gap-2 text-sm text-slate-600">
         <button
           type="button"
           className="rounded-full border border-slate-200 bg-white px-4 py-2 shadow-sm disabled:opacity-50"

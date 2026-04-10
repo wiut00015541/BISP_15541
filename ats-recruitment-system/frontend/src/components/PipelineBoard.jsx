@@ -7,7 +7,7 @@ const PipelineBoard = ({ items, candidateLinkBase = "/candidates", onMove, movin
   const [dragOverStage, setDragOverStage] = useState(null);
 
   return (
-    <div className="grid gap-4 xl:grid-cols-6">
+    <div className="space-y-4">
       {items.map((column, index) => (
         <section
           key={column.stage}
@@ -57,7 +57,7 @@ const PipelineBoard = ({ items, candidateLinkBase = "/candidates", onMove, movin
             </span>
           </header>
 
-          <div className="space-y-3">
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             {column.applications.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 p-4 text-sm text-slate-400">
                 {t("pipeline.empty")}

@@ -14,7 +14,6 @@ const Layout = ({ children, onLogout, user }) => {
     { to: "/pipeline", label: t("nav.pipeline") },
     { to: "/reports", label: t("nav.reports") },
     { to: "/settings", label: t("nav.settings") },
-    ...(isAdmin || permissions.includes("users.read") ? [{ to: "/users", label: t("nav.users") }] : []),
   ];
 
   return (
@@ -38,7 +37,7 @@ const Layout = ({ children, onLogout, user }) => {
             </Link>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex w-full flex-wrap items-center justify-end gap-3 sm:w-auto">
             <div className="rounded-full border border-slate-200 bg-white p-1 shadow-sm">
               <button
                 type="button"
@@ -60,17 +59,17 @@ const Layout = ({ children, onLogout, user }) => {
               </button>
             </div>
 
-            <div className="rounded-full border border-slate-200 bg-white px-4 py-2 shadow-sm">
+            <Link to="/settings/profile" className="min-w-[180px] rounded-[24px] border border-slate-200 bg-white px-4 py-2 shadow-sm transition hover:-translate-y-0.5">
               <p className="text-xs uppercase tracking-[0.24em] text-slate-400">{t("meta.teamPulse")}</p>
               <p className="text-sm font-semibold text-slate-900">
                 {user?.firstName} {user?.lastName}
               </p>
               <p className="text-xs uppercase tracking-[0.2em] text-slate-400">{user?.role}</p>
-            </div>
+            </Link>
 
             <button
               type="button"
-              className="rounded-full bg-slate-950 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-slate-200 transition hover:-translate-y-0.5"
+              className="rounded-full bg-slate-950 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-slate-200 transition hover:-translate-y-0.5 sm:w-auto"
               onClick={onLogout}
             >
               {t("common.logout")}
@@ -79,23 +78,23 @@ const Layout = ({ children, onLogout, user }) => {
         </div>
       </header>
 
-      <div className="page-shell grid gap-6 pb-10 lg:grid-cols-[260px_1fr]">
-        <aside className="rounded-[28px] border border-white/80 bg-white/80 p-4 shadow-[0_18px_60px_rgba(15,23,42,0.08)] backdrop-blur-xl">
-          <div className="rounded-[24px] bg-slate-950 p-5 text-white">
-            <p className="text-xs uppercase tracking-[0.28em] text-cyan-200">{t("meta.smartWorkflows")}</p>
-            <h2 className="mt-3 text-2xl font-semibold">ATS</h2>
-            <p className="mt-2 text-sm text-slate-300">{t("dashboard.subtitle")}</p>
+      <div className="page-shell grid gap-6 pb-10 pt-6 lg:grid-cols-[232px_minmax(0,1fr)]">
+        <aside className="self-start rounded-[24px] border border-slate-200/70 bg-white/72 p-3 shadow-[0_14px_40px_rgba(15,23,42,0.06)] backdrop-blur-xl">
+          <div className="rounded-[20px] border border-slate-200/80 bg-white px-4 py-4">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-cyan-700">{t("meta.smartWorkflows")}</p>
+            <h2 className="mt-2 text-lg font-semibold text-slate-950">ATS</h2>
+            <p className="mt-1 text-sm text-slate-500">{t("dashboard.subtitle")}</p>
           </div>
 
-          <nav className="mt-4 flex flex-col gap-2">
+          <nav className="mt-3 flex flex-col gap-1.5">
             {links.map((link) => (
               <NavLink
                 key={link.to}
                 to={link.to}
                 className={({ isActive }) =>
-                  `group rounded-2xl px-4 py-3 text-sm font-medium transition ${
+                  `group rounded-xl px-3.5 py-2.5 text-sm font-medium transition ${
                     isActive
-                      ? "bg-cyan-50 text-cyan-800 shadow-sm ring-1 ring-cyan-100"
+                      ? "bg-cyan-50 text-cyan-800 ring-1 ring-cyan-100"
                       : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                   }`
                 }
@@ -105,11 +104,6 @@ const Layout = ({ children, onLogout, user }) => {
             ))}
           </nav>
 
-          <div className="mt-5 rounded-[24px] border border-slate-200 bg-gradient-to-br from-cyan-50 to-white p-4">
-            <p className="text-xs uppercase tracking-[0.28em] text-cyan-700">{t("meta.systemHealth")}</p>
-            <p className="mt-2 text-3xl font-semibold text-slate-950">99.9%</p>
-            <p className="mt-1 text-sm text-slate-600">{t("common.livePipeline")}</p>
-          </div>
         </aside>
 
         <main className="space-y-6">{children}</main>

@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { useLanguage } from "../i18n.jsx";
 import { useNotifications } from "../notifications.jsx";
 import { fetchLookups } from "../services/lookupService";
-import { createJob } from "../services/jobsService";
+import { createJob, fetchJobById, updateJob } from "../services/jobsService";
 
 const initialJobForm = {
   title: "",
   description: "",
-  type: "FULL_TIME",
-  status: "OPEN",
+  type: "",
+  status: "",
   departmentId: "",
   locationId: "",
   recruiterId: "",
@@ -25,6 +25,7 @@ const inputClass = (error) =>
   }`;
 
 const JobCreatePage = ({ currentUser }) => {
+  const { id } = useParams();
   const navigate = useNavigate();
   const { t } = useLanguage();
   const notifications = useNotifications();
@@ -34,24 +35,67 @@ const JobCreatePage = ({ currentUser }) => {
     locations: [],
     recruiters: [],
     hiringManagers: [],
+    jobTypes: [],
+    jobStatuses: [],
   });
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(Boolean(id));
   const canCreateJob =
     currentUser?.role === "admin" || (currentUser?.permissions || []).includes("jobs.write");
+  const isEditMode = Boolean(id);
 
   useEffect(() => {
     const loadLookups = async () => {
-      const data = await fetchLookups();
+      const [data, jobData] = await Promise.all([
+        fetchLookups(),
+        id ? fetchJobById(id) : Promise.resolve(null),
+      ]);
+
       setLookups({
         departments: data.departments || [],
         locations: data.locations || [],
         recruiters: data.recruiters || [],
         hiringManagers: data.hiringManagers || [],
+        jobTypes: data.jobTypes || [],
+        jobStatuses: data.jobStatuses || [],
       });
+
+      if (jobData) {
+        setForm({
+          title: jobData.title || "",
+          description: jobData.description || "",
+          type: jobData.type || data.jobTypes?.[0]?.code || data.jobTypes?.[0]?.name || "",
+          status:
+            jobData.status ||
+            data.jobStatuses?.find((item) => item.code === "OPEN")?.code ||
+            data.jobStatuses?.[0]?.code ||
+            data.jobStatuses?.[0]?.name ||
+            "",
+          departmentId: jobData.departmentId || "",
+          locationId: jobData.locationId || "",
+          recruiterId: jobData.recruiterId || "",
+          hiringManagerId: jobData.hiringManagerId || "",
+          minSalary: jobData.minSalary ?? "",
+          maxSalary: jobData.maxSalary ?? "",
+          openings: String(jobData.openings ?? 1),
+        });
+      } else {
+        setForm((prev) => ({
+          ...prev,
+          type: prev.type || data.jobTypes?.[0]?.code || data.jobTypes?.[0]?.name || "",
+          status:
+            prev.status ||
+            data.jobStatuses?.find((item) => item.code === "OPEN")?.code ||
+            data.jobStatuses?.[0]?.code ||
+            data.jobStatuses?.[0]?.name ||
+            "",
+        }));
+      }
+      setLoading(false);
     };
 
     loadLookups();
-  }, []);
+  }, [id]);
 
   const validate = () => {
     const nextErrors = {};
@@ -82,6 +126,14 @@ const JobCreatePage = ({ currentUser }) => {
       nextErrors.hiringManagerId = t("jobs.validationHiringManager");
     }
 
+    if (!form.type) {
+      nextErrors.type = t("jobs.validationType");
+    }
+
+    if (!form.status) {
+      nextErrors.status = t("jobs.validationStatus");
+    }
+
     if (!form.openings || Number(form.openings) < 1) {
       nextErrors.openings = t("jobs.validationOpenings");
     }
@@ -110,13 +162,14 @@ const JobCreatePage = ({ currentUser }) => {
     }
 
     try {
-      const job = await createJob({
+      const payload = {
         ...form,
         minSalary: form.minSalary ? Number(form.minSalary) : null,
         maxSalary: form.maxSalary ? Number(form.maxSalary) : null,
         openings: form.openings ? Number(form.openings) : 1,
-      });
-      notifications.success(t("common.successJobCreated"));
+      };
+      const job = isEditMode ? await updateJob(id, payload) : await createJob(payload);
+      notifications.success(isEditMode ? t("common.successJobUpdated") : t("common.successJobCreated"));
       navigate(`/jobs/${job.id}`);
     } catch (error) {
       const apiErrors = error?.response?.data?.details || {};
@@ -129,16 +182,22 @@ const JobCreatePage = ({ currentUser }) => {
     return <Navigate to="/jobs" replace />;
   }
 
+  if (loading) {
+    return <section className="rounded-[30px] border border-white/80 bg-white/90 p-6 text-slate-500 shadow-[0_18px_60px_rgba(15,23,42,0.08)]">{t("common.loading")}</section>;
+  }
+
   return (
     <section className="space-y-5">
       <div>
-        <h1 className="text-3xl font-semibold tracking-tight text-slate-950">{t("jobs.newButton")}</h1>
+        <h1 className="text-3xl font-semibold tracking-tight text-slate-950">
+          {isEditMode ? t("jobs.editButton") : t("jobs.newButton")}
+        </h1>
         <p className="mt-2 text-slate-500">{t("jobs.createTitle")}</p>
       </div>
 
       <form
         onSubmit={handleSubmit}
-        className="grid gap-4 rounded-[30px] border border-white/80 bg-white/90 p-6 shadow-[0_18px_60px_rgba(15,23,42,0.08)] md:grid-cols-2 xl:grid-cols-4"
+        className="grid items-start gap-4 rounded-[30px] border border-white/80 bg-white/90 p-6 shadow-[0_18px_60px_rgba(15,23,42,0.08)] md:grid-cols-2 xl:grid-cols-4"
       >
         <div className="space-y-2">
           <input
@@ -188,10 +247,12 @@ const JobCreatePage = ({ currentUser }) => {
             value={form.type}
             onChange={(event) => setForm((prev) => ({ ...prev, type: event.target.value }))}
           >
-            <option value="FULL_TIME">Full time</option>
-            <option value="PART_TIME">Part time</option>
-            <option value="CONTRACT">Contract</option>
-            <option value="INTERNSHIP">Internship</option>
+            <option value="">{t("jobs.formType")}</option>
+            {lookups.jobTypes.map((typeOption) => (
+              <option key={typeOption.id} value={typeOption.code || typeOption.name}>
+                {typeOption.name}
+              </option>
+            ))}
           </select>
           {errors.type ? <p className="text-sm text-rose-600">{errors.type}</p> : null}
         </div>
@@ -244,10 +305,12 @@ const JobCreatePage = ({ currentUser }) => {
             value={form.status}
             onChange={(event) => setForm((prev) => ({ ...prev, status: event.target.value }))}
           >
-            <option value="DRAFT">Draft</option>
-            <option value="OPEN">Open</option>
-            <option value="CLOSED">Closed</option>
-            <option value="ON_HOLD">On hold</option>
+            <option value="">{t("jobs.formStatus")}</option>
+            {lookups.jobStatuses.map((statusOption) => (
+              <option key={statusOption.id} value={statusOption.code || statusOption.name}>
+                {statusOption.name}
+              </option>
+            ))}
           </select>
           {errors.status ? <p className="text-sm text-rose-600">{errors.status}</p> : null}
         </div>
@@ -287,8 +350,8 @@ const JobCreatePage = ({ currentUser }) => {
         </div>
 
         <div className="xl:col-span-4">
-          <button className="rounded-full bg-slate-950 px-5 py-3 text-sm font-medium text-white" type="submit">
-            {t("common.create")}
+          <button className="w-full rounded-full bg-slate-950 px-5 py-3 text-sm font-medium text-white sm:w-auto" type="submit">
+            {isEditMode ? t("common.save") : t("common.create")}
           </button>
         </div>
       </form>

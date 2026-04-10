@@ -1,7 +1,7 @@
 const prisma = require("../config/prisma");
 const { parsePagination, parseSort } = require("../utils/apiFeatures");
 const { isAdmin } = require("../utils/accessScope");
-const { sendEmail, renderEmailTemplate } = require("../utils/emailService");
+const { sendEmail, renderEmailTemplate, getManagedEmailTemplate } = require("../utils/emailService");
 
 const buildAccessibleApplicationWhere = (query, user) => {
   const where = {};
@@ -111,11 +111,14 @@ const createApplication = async (payload, userId, user) => {
 };
 
 const updateApplicationStage = async (applicationId, stageName, changedById, note, user) => {
-  const [application, nextStage] = await Promise.all([
+  let [application, nextStage] = await Promise.all([
     prisma.application.findFirst({
       where: {
         id: applicationId,
         ...buildAccessibleApplicationWhere({}, user),
+      },
+      include: {
+        job: true,
       },
     }),
     prisma.stage.findFirst({
@@ -123,8 +126,29 @@ const updateApplicationStage = async (applicationId, stageName, changedById, not
     }),
   ]);
 
-  if (!application || !nextStage) {
-    const error = new Error("Application or stage not found");
+  if (!application) {
+    const error = new Error("Application not found");
+    error.status = 404;
+    throw error;
+  }
+
+  if (!nextStage && String(stageName).toLowerCase() === "withdrawn") {
+    const maxOrderStage = await prisma.stage.findFirst({
+      orderBy: { order: "desc" },
+      select: { order: true },
+    });
+
+    nextStage = await prisma.stage.create({
+      data: {
+        name: "Withdrawn",
+        order: (maxOrderStage?.order || 0) + 1,
+        isTerminal: true,
+      },
+    });
+  }
+
+  if (!nextStage) {
+    const error = new Error("Stage not found");
     error.status = 404;
     throw error;
   }
@@ -145,7 +169,97 @@ const updateApplicationStage = async (applicationId, stageName, changedById, not
     },
   });
 
+  if (String(nextStage.name).toLowerCase() === "hired") {
+    await prisma.job.update({
+      where: { id: application.jobId },
+      data: {
+        status: "CLOSED",
+      },
+    });
+  }
+
   return updated;
+};
+
+const revertHiredApplication = async (applicationId, changedById, user) => {
+  const application = await prisma.application.findFirst({
+    where: {
+      id: applicationId,
+      ...buildAccessibleApplicationWhere({}, user),
+    },
+    include: {
+      job: true,
+      currentStage: true,
+      history: {
+        include: {
+          fromStage: true,
+          toStage: true,
+        },
+        orderBy: { changedAt: "desc" },
+      },
+    },
+  });
+
+  if (!application) {
+    const error = new Error("Application not found");
+    error.status = 404;
+    throw error;
+  }
+
+  if (String(application.currentStage?.name || "").toLowerCase() !== "hired") {
+    const error = new Error("Only hired applications can be reverted");
+    error.status = 400;
+    throw error;
+  }
+
+  const hiredTransition = application.history.find(
+    (entry) => String(entry.toStage?.name || "").toLowerCase() === "hired" && entry.fromStage
+  );
+
+  let fallbackStage = null;
+  if (!hiredTransition?.fromStageId) {
+    fallbackStage = await prisma.stage.findFirst({
+      where: {
+        name: { in: ["Offer", "Interview", "Screening", "Applied"] },
+      },
+      orderBy: { order: "desc" },
+    });
+  }
+
+  const previousStageId = hiredTransition?.fromStageId || fallbackStage?.id;
+
+  if (!previousStageId) {
+    const error = new Error("A previous stage could not be resolved for this hired application");
+    error.status = 400;
+    throw error;
+  }
+
+  const reverted = await prisma.application.update({
+    where: { id: applicationId },
+    data: { currentStageId: previousStageId },
+    include: { currentStage: true },
+  });
+
+  await prisma.applicationHistory.create({
+    data: {
+      applicationId,
+      fromStageId: application.currentStageId,
+      toStageId: previousStageId,
+      changedById,
+      note: "Hired status reversed from candidate profile",
+    },
+  });
+
+  if (String(application.job?.status || "").toUpperCase() === "CLOSED") {
+    await prisma.job.update({
+      where: { id: application.jobId },
+      data: {
+        status: "OPEN",
+      },
+    });
+  }
+
+  return reverted;
 };
 
 const scheduleInterview = async (applicationId, payload, user) => {
@@ -221,19 +335,39 @@ const scheduleInterview = async (applicationId, payload, user) => {
     timeStyle: "short",
   });
 
+  const interviewTemplate = await getManagedEmailTemplate(
+    payload.templateCode || "interview_invitation",
+    {
+      subject: "Interview scheduled for {{jobTitle}}",
+      heading: "Interview scheduled for {{jobTitle}}",
+      intro:
+        "Hello {{candidateFirstName}}, your interview for {{jobTitle}} has been scheduled for {{formattedDate}}.",
+      closing: "ATS Recruitment Team",
+    },
+    {
+      candidateFirstName: application.candidate.firstName,
+      candidateLastName: application.candidate.lastName,
+      jobTitle: application.job.title,
+      formattedDate,
+      interviewerName: `${interviewer.firstName} ${interviewer.lastName}`,
+      meetingLink: payload.meetingLink || "To be shared soon",
+    }
+  );
+
   await sendEmail({
     to: application.candidate.email,
-    subject: `Interview scheduled for ${application.job.title}`,
+    subject: interviewTemplate.subject,
     text: `Hello ${application.candidate.firstName},\n\nYour interview for ${application.job.title} has been scheduled for ${formattedDate}.\nInterviewer: ${interviewer.firstName} ${interviewer.lastName}\nMeeting link: ${payload.meetingLink || "To be shared soon"}\n\nBest regards,\nATS Recruitment Team`,
     html: renderEmailTemplate({
-      heading: `Interview scheduled for ${application.job.title}`,
-      intro: `Hello ${application.candidate.firstName}, your interview has been scheduled.`,
+      heading: interviewTemplate.heading,
+      intro: interviewTemplate.intro,
       sections: [
         { label: "Role", value: application.job.title },
         { label: "Date and time", value: formattedDate },
         { label: "Interviewer", value: `${interviewer.firstName} ${interviewer.lastName}` },
         { label: "Meeting link", value: payload.meetingLink || "To be shared soon" },
       ],
+      closing: interviewTemplate.closing,
     }),
   });
 
@@ -282,6 +416,7 @@ module.exports = {
   getApplications,
   createApplication,
   updateApplicationStage,
+  revertHiredApplication,
   scheduleInterview,
   addInterviewFeedback,
 };

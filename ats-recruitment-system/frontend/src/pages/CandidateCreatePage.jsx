@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useLanguage } from "../i18n.jsx";
 import { useNotifications } from "../notifications.jsx";
 import { createCandidate } from "../services/candidatesService";
@@ -17,28 +17,54 @@ const initialCandidateForm = {
   jobId: "",
 };
 
+const inputClass =
+  "rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-cyan-400 focus:bg-white";
+
+const isOpenJob = (job) => String(job?.status || "").toUpperCase() === "OPEN";
+
 const CandidateCreatePage = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { t } = useLanguage();
   const notifications = useNotifications();
   const [form, setForm] = useState(initialCandidateForm);
   const [resumeFile, setResumeFile] = useState(null);
   const [skills, setSkills] = useState([]);
-  const [openJobs, setOpenJobs] = useState([]);
+  const [candidateSources, setCandidateSources] = useState([]);
+  const [jobOptions, setJobOptions] = useState([]);
   const [error, setError] = useState("");
+  const openJobOptions = jobOptions.filter((job) => isOpenJob(job));
 
   useEffect(() => {
     const load = async () => {
+      const preselectedJobId = searchParams.get("jobId") || "";
       const [lookupData, jobsData] = await Promise.all([
         fetchLookups(),
-        fetchJobs({ status: "open", page: 1, limit: 100 }),
+        fetchJobs({ page: 1, limit: 200 }),
       ]);
+      const allJobs = jobsData.data || [];
+      const openJobs = allJobs.filter((job) => isOpenJob(job));
+      const hasPreselectedOpenJob = openJobs.some((job) => job.id === preselectedJobId);
       setSkills(lookupData.skills || []);
-      setOpenJobs(jobsData.data || []);
+      setCandidateSources(lookupData.candidateSources || []);
+      setJobOptions(allJobs);
+      setForm((prev) => ({
+        ...prev,
+        jobId:
+          prev.jobId ||
+          (hasPreselectedOpenJob ? preselectedJobId : "") ||
+          openJobs[0]?.id ||
+          "",
+        source:
+          prev.source ||
+          lookupData.candidateSources?.[0]?.code ||
+          lookupData.candidateSources?.[0]?.name ||
+          "",
+      }));
     };
 
     load();
-  }, []);
+  }, [searchParams]);
 
   const validate = () => {
     const emailIsValid = /\S+@\S+\.\S+/.test(form.email);
@@ -81,8 +107,13 @@ const CandidateCreatePage = () => {
       const candidate = await createCandidate(payload);
       notifications.success(t("common.successCandidateCreated"));
       navigate(`/candidates/${candidate.id}`);
-    } catch (_error) {
-      notifications.error(t("common.genericError"));
+    } catch (requestError) {
+      const backendDetails = requestError?.response?.data?.details || {};
+      const backendMessage = requestError?.response?.data?.message || t("common.genericError");
+      const firstFieldError = Object.values(backendDetails).find(Boolean);
+      const nextError = firstFieldError || backendMessage;
+      setError(nextError);
+      notifications.error(nextError);
     }
   };
 
@@ -95,10 +126,10 @@ const CandidateCreatePage = () => {
 
       <form
         onSubmit={handleSubmit}
-        className="grid gap-3 rounded-[30px] border border-white/80 bg-white/90 p-6 shadow-[0_18px_60px_rgba(15,23,42,0.08)] md:grid-cols-2 xl:grid-cols-4"
+        className="grid items-start gap-4 rounded-[30px] border border-white/80 bg-white/90 p-6 shadow-[0_18px_60px_rgba(15,23,42,0.08)] md:grid-cols-2 xl:grid-cols-4"
       >
         <input
-          className={`rounded-2xl border bg-slate-50 px-4 py-3 text-sm outline-none focus:bg-white ${
+          className={`${inputClass} ${
             error ? "border-rose-300 focus:border-rose-400" : "border-slate-200 focus:border-cyan-400"
           }`}
           placeholder={t("candidates.firstName")}
@@ -106,32 +137,38 @@ const CandidateCreatePage = () => {
           onChange={(event) => setForm((prev) => ({ ...prev, firstName: event.target.value }))}
         />
         <input
-          className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-cyan-400 focus:bg-white"
+          className={inputClass}
           placeholder={t("candidates.lastName")}
           value={form.lastName}
           onChange={(event) => setForm((prev) => ({ ...prev, lastName: event.target.value }))}
         />
         <input
-          className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-cyan-400 focus:bg-white"
+          className={inputClass}
           placeholder={t("candidates.email")}
           type="email"
           value={form.email}
           onChange={(event) => setForm((prev) => ({ ...prev, email: event.target.value }))}
         />
         <input
-          className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-cyan-400 focus:bg-white"
+          className={inputClass}
           placeholder={t("candidates.phone")}
           value={form.phone}
           onChange={(event) => setForm((prev) => ({ ...prev, phone: event.target.value }))}
         />
-        <input
-          className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-cyan-400 focus:bg-white"
-          placeholder={t("candidates.source")}
+        <select
+          className={inputClass}
           value={form.source}
           onChange={(event) => setForm((prev) => ({ ...prev, source: event.target.value }))}
-        />
+        >
+          <option value="">{t("candidates.source")}</option>
+          {candidateSources.map((sourceOption) => (
+            <option key={sourceOption.id} value={sourceOption.code || sourceOption.name}>
+              {sourceOption.name}
+            </option>
+          ))}
+        </select>
         <input
-          className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-cyan-400 focus:bg-white"
+          className={inputClass}
           placeholder={t("candidates.yearsExperience")}
           type="number"
           step="0.1"
@@ -139,20 +176,23 @@ const CandidateCreatePage = () => {
           onChange={(event) => setForm((prev) => ({ ...prev, yearsExperience: event.target.value }))}
         />
         <select
-          className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-cyan-400 focus:bg-white xl:col-span-2"
+          className={`${inputClass} xl:col-span-2`}
           value={form.jobId}
           onChange={(event) => setForm((prev) => ({ ...prev, jobId: event.target.value }))}
         >
           <option value="">{t("jobs.title")}</option>
-          {openJobs.map((job) => (
-            <option key={job.id} value={job.id}>
-              {job.title}
+          {jobOptions.map((job) => (
+            <option key={job.id} value={job.id} disabled={!isOpenJob(job)}>
+              {job.title} {!isOpenJob(job) ? `(${job.status})` : ""}
             </option>
           ))}
         </select>
+        {openJobOptions.length === 0 ? (
+          <p className="text-sm text-slate-500 xl:col-span-2">{t("candidates.noJobsAvailable")}</p>
+        ) : null}
         <select
           multiple
-          className="min-h-32 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-cyan-400 focus:bg-white xl:col-span-4"
+          className={`min-h-32 ${inputClass} xl:col-span-4`}
           value={form.skillIds}
           onChange={(event) => {
             const selected = Array.from(event.target.selectedOptions).map((option) => option.value);
@@ -165,13 +205,22 @@ const CandidateCreatePage = () => {
             </option>
           ))}
         </select>
-        <label className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-600 xl:col-span-4">
+        <label className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-4 text-sm text-slate-600 xl:col-span-4">
           <span className="mb-2 block font-medium text-slate-700">{t("candidates.uploadResume")}</span>
-          <input type="file" accept=".pdf,.doc,.docx" onChange={(event) => setResumeFile(event.target.files?.[0] || null)} />
+          <input
+            className="block w-full text-sm"
+            type="file"
+            accept=".pdf,.doc,.docx"
+            onChange={(event) => setResumeFile(event.target.files?.[0] || null)}
+          />
         </label>
         <div className="xl:col-span-4">
           {error ? <p className="mb-3 text-sm text-rose-600">{error}</p> : null}
-          <button className="rounded-full bg-slate-950 px-5 py-3 text-sm font-medium text-white" type="submit">
+          <button
+            className="w-full rounded-full bg-slate-950 px-5 py-3 text-sm font-medium text-white disabled:cursor-not-allowed disabled:bg-slate-300 sm:w-auto"
+            type="submit"
+            disabled={openJobOptions.length === 0}
+          >
             {t("common.create")}
           </button>
         </div>

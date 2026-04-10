@@ -30,7 +30,7 @@ const buildJobWhere = (query, user) => {
   }
 
   if (query.status) {
-    where.status = query.status.toUpperCase();
+    where.status = { equals: query.status, mode: "insensitive" };
   }
 
   if (query.search) {

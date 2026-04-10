@@ -1,0 +1,11 @@
+.env
+.env.*
+!.env.example
+ats-recruitment-system/backend/.env
+ats-recruitment-system/frontend/.env
+node_modules/
+dist/
+build/
+.vite/
+coverage/
+*.log

@@ -10,6 +10,8 @@ const aiRoutes = require("./aiRoutes");
 const lookupRoutes = require("./lookupRoutes");
 const departmentRoutes = require("./departmentRoutes");
 const userRoutes = require("./userRoutes");
+const optionRoutes = require("./optionRoutes");
+const emailConfigRoutes = require("./emailConfigRoutes");
 
 const router = express.Router();
 
@@ -23,5 +25,7 @@ router.use("/ai", aiRoutes);
 router.use("/lookups", lookupRoutes);
 router.use("/departments", departmentRoutes);
 router.use("/users", userRoutes);
+router.use("/options", optionRoutes);
+router.use("/email", emailConfigRoutes);
 
 module.exports = router;
