@@ -34,8 +34,8 @@ const LoginPage = ({ onLogin }) => {
       </div>
 
       <div className="relative grid w-full max-w-6xl gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-        <section className="relative min-w-0 overflow-hidden rounded-[36px] bg-slate-950 p-8 pb-24 text-white shadow-[0_30px_120px_rgba(15,23,42,0.35)]">
-          <div className="flex min-h-full min-w-0 flex-col gap-6">
+        <section className="flex min-w-0 flex-col overflow-hidden rounded-[36px] bg-slate-950 p-10 text-white shadow-[0_30px_120px_rgba(15,23,42,0.35)]">
+          <div className="flex min-h-full min-w-0 flex-col">
             <div className="min-w-0 text-center lg:text-left">
               <p className="text-xs uppercase tracking-[0.34em] text-cyan-200">{t("meta.workspace")}</p>
               <h1 className="mt-4 max-w-full text-3xl font-semibold leading-tight sm:max-w-xl sm:text-4xl">
@@ -43,21 +43,21 @@ const LoginPage = ({ onLogin }) => {
               </h1>
               <p className="mt-4 max-w-full text-base text-slate-300 sm:max-w-xl">{t("login.subtitle")}</p>
             </div>
+
+            <div className="mt-3 grid auto-rows-fr gap-4 md:grid-cols-3">
+              <div className="flex min-h-[116px] items-center justify-center rounded-[24px] border border-white/10 bg-white/5 px-4 py-5 text-center">
+                <p className="text-sm font-medium leading-6 text-white">{t("login.featureOne")}</p>
+              </div>
+              <div className="flex min-h-[116px] items-center justify-center rounded-[24px] border border-white/10 bg-white/5 px-4 py-5 text-center">
+                <p className="text-sm font-medium leading-6 text-white">{t("login.featureTwo")}</p>
+              </div>
+              <div className="flex min-h-[116px] items-center justify-center rounded-[24px] border border-white/10 bg-white/5 px-4 py-5 text-center">
+                <p className="text-sm font-medium leading-6 text-white">{t("login.featureThree")}</p>
+              </div>
+            </div>
           </div>
 
-          <div className="mt-10 grid gap-4 md:grid-cols-3">
-            <div className="rounded-[24px] border border-white/10 bg-white/5 p-4">
-              <p className="text-sm font-medium text-white">{t("login.featureOne")}</p>
-            </div>
-            <div className="rounded-[24px] border border-white/10 bg-white/5 p-4">
-              <p className="text-sm font-medium text-white">{t("login.featureTwo")}</p>
-            </div>
-            <div className="rounded-[24px] border border-white/10 bg-white/5 p-4">
-              <p className="text-sm font-medium text-white">{t("login.featureThree")}</p>
-            </div>
-          </div>
-
-          <div className="absolute bottom-6 right-6">
+          <div className="flex justify-end">
             <div className="rounded-full border border-white/10 bg-white/5 p-0.5 shadow-sm shadow-black/10 backdrop-blur-sm">
               <button
                 type="button"
