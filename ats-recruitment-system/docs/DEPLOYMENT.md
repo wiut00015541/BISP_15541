@@ -31,7 +31,7 @@ Use these values:
 
 - Root Directory: `ats-recruitment-system/backend`
 - Environment: `Node`
-- Build Command: `npm install && npx prisma generate`
+- Build Command: `npm install && npm run prisma:generate`
 - Start Command: `npm start`
 
 ### Backend Environment Variables

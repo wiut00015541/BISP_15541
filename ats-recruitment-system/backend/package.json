@@ -6,8 +6,8 @@
     "dev": "nodemon server.js",
     "start": "node server.js",
     "test": "node --test tests/**/*.test.js",
-    "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev",
+    "prisma:generate": "node ./node_modules/prisma/build/index.js generate",
+    "prisma:migrate": "node ./node_modules/prisma/build/index.js migrate dev",
     "prisma:seed": "node prisma/seed.js"
   },
   "dependencies": {
