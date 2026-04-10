@@ -1,172 +1,106 @@
 # ATS Recruitment System
 
-Production-oriented Applicant Tracking System inspired by SmartRecruiters.
+## Requirements
 
-## Stack
+- Node.js 20+
+- npm
+- PostgreSQL or Neon PostgreSQL
 
-- Backend: Node.js, Express, Prisma ORM, PostgreSQL (Neon)
-- Frontend: React, Vite, TailwindCSS
-- Deployment: Render (backend), Vercel (frontend)
+## 1. Clone The Project
 
-## Full Setup Guides
 
-- General installation and local development: [docs/SETUP.md](/c:/Users/diana.shadiyeva/Desktop/ATS_BISP15541/ats-recruitment-system/docs/SETUP.md)
-- Neon database configuration: [docs/NEON.md](/c:/Users/diana.shadiyeva/Desktop/ATS_BISP15541/ats-recruitment-system/docs/NEON.md)
-- Production deployment on Render and Vercel: [docs/DEPLOYMENT.md](/c:/Users/diana.shadiyeva/Desktop/ATS_BISP15541/ats-recruitment-system/docs/DEPLOYMENT.md)
+git clone https://github.com/wiut00015541/BISP_15541.git
+cd BISP_15541\ats-recruitment-system
 
-## Project Structure
 
-```text
-ats-recruitment-system
-|-- backend
-|   |-- controllers
-|   |-- routes
-|   |-- services
-|   |-- middleware
-|   |-- prisma
-|   |-- utils
-|   |-- config
-|   `-- server.js
-|-- frontend
-|   `-- src
-|       |-- pages
-|       |-- components
-|       |-- services
-|       |-- hooks
-|       `-- App.jsx
-`-- README.md
-```
+## 2. Create Backend Environment File
 
-## Backend Setup
+Create `backend/.env`:
 
-```bash
+PORT=5000
+DATABASE_URL="postgresql://neondb_owner:npg_mirV0TF7BGzu@ep-frosty-shape-a1gwocww-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require&connect_timeout=15"
+DIRECT_URL="postgresql://neondb_owner:npg_mirV0TF7BGzu@ep-frosty-shape-a1gwocww.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require&connect_timeout=15"
+JWT_SECRET="18a6a903-9874-4630-98c9-f67c83d35a432d9596be-1023-4321-8147-3e7a27e4789d"
+JWT_EXPIRES_IN="1d"
+OPENAI_RESUME_MODEL="gpt-4.1-mini"
+FRONTEND_URL="http://localhost:5173"
+SMTP_SERVICE="gmail"
+SMTP_HOST=""
+SMTP_PORT=""
+SMTP_USER="shadiyevadiana@gmail.com"
+SMTP_PASS="gqenlvnmhblngqdb"
+SMTP_SECURE="false"
+EMAIL_FROM="shadiyevadiana@gmail.com"
+
+
+
+## 3. Install And Run Backend
+
 cd backend
 npm install
-npx prisma generate
-npx prisma migrate dev --name init
-node prisma/seed.js
+npm run prisma:generate
+npm run prisma:migrate
+npm run prisma:seed
 npm run dev
-```
 
-## Frontend Setup
 
-```bash
+Backend:
+
+
+http://localhost:5000
+
+
+Health check:
+
+http://localhost:5000/health
+
+
+## 4. Create Frontend Environment File
+
+Open a second terminal in the project root and create `frontend/.env`:
+
+
+VITE_API_URL=http://localhost:5000/api
+
+
+## 5. Install And Run Frontend
+
+
 cd frontend
 npm install
 npm run dev
-```
 
-Create `frontend/.env`:
 
-```bash
-VITE_API_URL=http://localhost:5000/api
-```
+Frontend:
 
-Frontend environment file: [frontend/.env](/c:/Users/diana.shadiyeva/Desktop/ATS_BISP15541/ats-recruitment-system/frontend/.env)
 
-## Required ATS Features Implemented
+http://localhost:5173
 
-- JWT authentication (`POST /auth/register`, `POST /auth/login`)
-- Role-based access control via role-permission matrix
-- Job CRUD with filtering/sorting/pagination
-- Candidate CRUD (create/list) with filtering/sorting/pagination
-- Candidate notes API
-- Application pipeline with stage transitions
-- Interview scheduling API
-- Dashboard analytics
-- Hiring funnel reports
-- AI resume analysis with OpenAI API (`POST /ai/resume-analysis`)
 
-## Pipeline Stages
+## 6. Login
 
-Seeded pipeline:
 
-- Applied
-- Screening
-- Interview
-- Offer
-- Hired
-- Rejected
+Admin
+Email: admin@ats.local
+Password: Admin@123
 
-## API Examples
 
-- `GET /api/jobs?department=engineering&location=remote`
-- `GET /api/candidates?skill=react&page=1&limit=20`
-- `GET /api/applications?stage=interview`
-- `GET /api/jobs?sort=created_at&order=desc`
-- `PATCH /api/applications/:id/stage` with `{ "stage": "Interview" }`
+## Useful Commands
 
-## Prisma Schema
+Backend:
 
-The Prisma schema includes 23 models (20+ required), including all requested tables:
+cd backend
+npm run dev
+npm run prisma:generate
+npm run prisma:migrate
+npm run prisma:seed
+npm test
 
-- users
-- roles
-- permissions
-- role_permissions
-- jobs
-- departments
-- locations
-- skills
-- job_skills
-- candidates
-- candidate_skills
-- resumes
-- candidate_notes
-- applications
-- stages
-- application_history
-- interviews
-- interview_feedback
-- notifications
-- messages
-- reports
-- system_settings
-- audit_logs (extra)
 
-## Deployment Notes
+Frontend:
 
-### Render (Backend)
 
-- Root directory: `backend`
-- Build command: `npm install && npx prisma generate`
-- Start command: `npm start`
-- Environment variables: `DATABASE_URL`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `OPENAI_API_KEY`, `FRONTEND_URL`
+cd frontend
+npm run dev
+npm run build
 
-### Vercel (Frontend)
-
-- Root directory: `frontend`
-- Build command: `npm run build`
-- Output directory: `dist`
-- Environment variable: `VITE_API_URL` pointing to Render backend URL
-# Email setup
-
-Add these variables to `backend/.env`:
-
-```env
-SMTP_HOST=""
-SMTP_PORT="587"
-SMTP_USER=""
-SMTP_PASS=""
-SMTP_SECURE="false"
-EMAIL_FROM=""
-```
-
-After configuring them, you can verify the connection with:
-
-```http
-GET /api/email/status
-```
-
-And send a test email with:
-
-```http
-POST /api/email/test
-Content-Type: application/json
-
-{
-  "to": "your-email@example.com"
-}
-```
-
-These endpoints require an authenticated admin user with `settings.write`.
