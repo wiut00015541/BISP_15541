@@ -1,5 +1,7 @@
+// optionsController translates HTTP requests into service calls.
 const optionService = require("../services/optionService");
 
+// Handle the request and return options to the client.
 const getOptions = async (req, res, next) => {
   try {
     const data = await optionService.getOptions(req.params.type);
@@ -9,6 +11,7 @@ const getOptions = async (req, res, next) => {
   }
 };
 
+// Handle creation for option and send the result back.
 const createOption = async (req, res, next) => {
   try {
     const item = await optionService.createOption(req.params.type, req.body);
@@ -18,6 +21,7 @@ const createOption = async (req, res, next) => {
   }
 };
 
+// Handle updates for option and return the latest state.
 const updateOption = async (req, res, next) => {
   try {
     const item = await optionService.updateOption(req.params.type, req.params.id, req.body);
@@ -27,6 +31,7 @@ const updateOption = async (req, res, next) => {
   }
 };
 
+// Handle deletion for option at the HTTP layer.
 const deleteOption = async (req, res, next) => {
   try {
     await optionService.deleteOption(req.params.type, req.params.id);

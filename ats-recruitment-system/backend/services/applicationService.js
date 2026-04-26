@@ -1,8 +1,10 @@
+// applicationService contains backend business logic for this area.
 const prisma = require("../config/prisma");
 const { parsePagination, parseSort } = require("../utils/apiFeatures");
 const { isAdmin } = require("../utils/accessScope");
 const { sendEmail, renderEmailTemplate, getManagedEmailTemplate } = require("../utils/emailService");
 
+// Build the Prisma filter used for accessible application.
 const buildAccessibleApplicationWhere = (query, user) => {
   const where = {};
 
@@ -29,6 +31,7 @@ const buildAccessibleApplicationWhere = (query, user) => {
   return where;
 };
 
+// Load applications with the business rules for this area.
 const getApplications = async (query, user) => {
   const where = buildAccessibleApplicationWhere(query, user);
   const { page, limit, skip } = parsePagination(query);
@@ -67,6 +70,7 @@ const getApplications = async (query, user) => {
   };
 };
 
+// Create application and apply the related business rules.
 const createApplication = async (payload, userId, user) => {
   const stage = await prisma.stage.findFirst({ where: { name: "Applied" } });
   if (!stage) {
@@ -110,6 +114,7 @@ const createApplication = async (payload, userId, user) => {
   return application;
 };
 
+// Update application stage while keeping the workflow rules consistent.
 const updateApplicationStage = async (applicationId, stageName, changedById, note, user) => {
   let [application, nextStage] = await Promise.all([
     prisma.application.findFirst({
@@ -133,6 +138,7 @@ const updateApplicationStage = async (applicationId, stageName, changedById, not
   }
 
   if (!nextStage && String(stageName).toLowerCase() === "withdrawn") {
+    // "Withdrawn" is created on demand so older databases can still use the action.
     const maxOrderStage = await prisma.stage.findFirst({
       orderBy: { order: "desc" },
       select: { order: true },
@@ -170,6 +176,7 @@ const updateApplicationStage = async (applicationId, stageName, changedById, not
   });
 
   if (String(nextStage.name).toLowerCase() === "hired") {
+    // Hiring a candidate closes the job automatically in the current workflow.
     await prisma.job.update({
       where: { id: application.jobId },
       data: {
@@ -181,6 +188,7 @@ const updateApplicationStage = async (applicationId, stageName, changedById, not
   return updated;
 };
 
+// Revert hired application while restoring the related workflow state.
 const revertHiredApplication = async (applicationId, changedById, user) => {
   const application = await prisma.application.findFirst({
     where: {
@@ -218,6 +226,7 @@ const revertHiredApplication = async (applicationId, changedById, user) => {
 
   let fallbackStage = null;
   if (!hiredTransition?.fromStageId) {
+    // Fall back to the last sensible active stage if the history is incomplete.
     fallbackStage = await prisma.stage.findFirst({
       where: {
         name: { in: ["Offer", "Interview", "Screening", "Applied"] },
@@ -262,6 +271,7 @@ const revertHiredApplication = async (applicationId, changedById, user) => {
   return reverted;
 };
 
+// Schedule interview and handle the side effects around it.
 const scheduleInterview = async (applicationId, payload, user) => {
   const application = await prisma.application.findFirst({
     where: {
@@ -374,6 +384,7 @@ const scheduleInterview = async (applicationId, payload, user) => {
   return interview;
 };
 
+// Add interview feedback inside the current workflow.
 const addInterviewFeedback = async (interviewId, payload, reviewerId, user) => {
   const interview = await prisma.interview.findFirst({
     where: {

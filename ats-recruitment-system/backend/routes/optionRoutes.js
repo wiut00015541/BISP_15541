@@ -1,3 +1,4 @@
+// optionRoutes wires endpoint paths to the matching controllers.
 const express = require("express");
 const optionsController = require("../controllers/optionsController");
 const authMiddleware = require("../middleware/authMiddleware");

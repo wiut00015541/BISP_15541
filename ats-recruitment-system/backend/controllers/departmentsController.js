@@ -1,5 +1,7 @@
+// departmentsController translates HTTP requests into service calls.
 const departmentService = require("../services/departmentService");
 
+// Handle the request and return departments to the client.
 const getDepartments = async (_req, res, next) => {
   try {
     const departments = await departmentService.getDepartments();
@@ -9,6 +11,7 @@ const getDepartments = async (_req, res, next) => {
   }
 };
 
+// Handle creation for department and send the result back.
 const createDepartment = async (req, res, next) => {
   try {
     const department = await departmentService.createDepartment(req.body);
@@ -18,6 +21,7 @@ const createDepartment = async (req, res, next) => {
   }
 };
 
+// Handle updates for department and return the latest state.
 const updateDepartment = async (req, res, next) => {
   try {
     const department = await departmentService.updateDepartment(req.params.id, req.body);
@@ -27,6 +31,7 @@ const updateDepartment = async (req, res, next) => {
   }
 };
 
+// Handle deletion for department at the HTTP layer.
 const deleteDepartment = async (req, res, next) => {
   try {
     await departmentService.deleteDepartment(req.params.id);

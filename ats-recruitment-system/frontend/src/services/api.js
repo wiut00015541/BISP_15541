@@ -1,3 +1,4 @@
+// api keeps related frontend API calls in one place.
 import axios from "axios";
 
 const api = axios.create({

@@ -1,3 +1,4 @@
+// applicationRoutes wires endpoint paths to the matching controllers.
 const express = require("express");
 const applicationsController = require("../controllers/applicationsController");
 const authMiddleware = require("../middleware/authMiddleware");

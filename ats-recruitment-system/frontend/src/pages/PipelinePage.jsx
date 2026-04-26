@@ -1,3 +1,4 @@
+// Pipeline screen for the frontend app.
 import { useEffect, useMemo, useState } from "react";
 import PipelineBoard from "../components/PipelineBoard";
 import { useLanguage } from "../i18n.jsx";
@@ -5,11 +6,13 @@ import { fetchApplications } from "../services/applicationsService";
 
 const stages = ["Applied", "Screening", "Interview", "Offer", "Hired", "Rejected"];
 
+// Render the pipeline page and keep its local UI behavior together.
 const PipelinePage = () => {
   const { t } = useLanguage();
   const [applications, setApplications] = useState([]);
 
   useEffect(() => {
+    // Load the data this screen needs before updating local state.
     const load = async () => {
       const response = await fetchApplications({ page: 1, limit: 200 });
       setApplications(response.data);

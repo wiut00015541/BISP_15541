@@ -1,3 +1,4 @@
+// JobCreate screen for the frontend app.
 import { useEffect, useState } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { useLanguage } from "../i18n.jsx";
@@ -19,11 +20,13 @@ const initialJobForm = {
   openings: "1",
 };
 
+// Keep input class focused and easier to understand from the code nearby.
 const inputClass = (error) =>
   `rounded-2xl border bg-slate-50 px-4 py-3 text-sm outline-none focus:bg-white ${
     error ? "border-rose-300 focus:border-rose-400" : "border-slate-200 focus:border-cyan-400"
   }`;
 
+// Render the job create page and keep its local UI behavior together.
 const JobCreatePage = ({ currentUser }) => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -45,6 +48,7 @@ const JobCreatePage = ({ currentUser }) => {
   const isEditMode = Boolean(id);
 
   useEffect(() => {
+    // Keep load lookups focused and easier to understand from the code nearby.
     const loadLookups = async () => {
       const [data, jobData] = await Promise.all([
         fetchLookups(),
@@ -97,6 +101,7 @@ const JobCreatePage = ({ currentUser }) => {
     loadLookups();
   }, [id]);
 
+  // Validate the current input before continuing to the next step.
   const validate = () => {
     const nextErrors = {};
 
@@ -154,6 +159,7 @@ const JobCreatePage = ({ currentUser }) => {
     return Object.keys(nextErrors).length === 0;
   };
 
+  // Submit the current form state and handle the success or error path.
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (!validate()) {

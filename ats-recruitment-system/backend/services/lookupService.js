@@ -1,5 +1,7 @@
+// lookupService contains backend business logic for this area.
 const prisma = require("../config/prisma");
 
+// Parse setting items into a safer internal format.
 const parseSettingItems = (value) => {
   try {
     const parsed = JSON.parse(value || "[]");
@@ -9,6 +11,7 @@ const parseSettingItems = (value) => {
   }
 };
 
+// Load lookups with the business rules for this area.
 const getLookups = async () => {
   const [departments, locations, skills, roles, recruiters, hiringManagers, settings] = await Promise.all([
     prisma.department.findMany({ orderBy: { name: "asc" } }),

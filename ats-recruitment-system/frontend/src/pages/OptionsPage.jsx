@@ -1,3 +1,4 @@
+// Options screen for the frontend app.
 import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useLanguage } from "../i18n.jsx";
@@ -16,6 +17,7 @@ const optionTypes = [
   { key: "emailTemplates", fields: ["code", "name", "subject", "heading", "intro", "closing"] },
 ];
 
+// Keep build initial form focused and easier to understand from the code nearby.
 const buildInitialForm = (type) => {
   if (type === "locations") {
     return { name: "", country: "Uzbekistan", isRemote: false };
@@ -35,23 +37,27 @@ const buildInitialForm = (type) => {
   return { name: "", description: "" };
 };
 
+// Keep input class focused and easier to understand from the code nearby.
 const inputClass = (error) =>
   `rounded-2xl border bg-slate-50 px-4 py-3 text-sm outline-none focus:bg-white ${
     error ? "border-rose-300 focus:border-rose-400" : "border-slate-200 focus:border-cyan-400"
   }`;
 
+// Render the options page and keep its local UI behavior together.
 const OptionSection = ({ type, items, t, onRefresh }) => {
   const notifications = useNotifications();
   const [form, setForm] = useState(buildInitialForm(type));
   const [editingId, setEditingId] = useState(null);
   const [errors, setErrors] = useState({});
 
+  // Keep reset focused and easier to understand from the code nearby.
   const reset = () => {
     setForm(buildInitialForm(type));
     setEditingId(null);
     setErrors({});
   };
 
+  // Validate the current input before continuing to the next step.
   const validate = () => {
     const nextErrors = {};
     if (!form.name?.toString().trim()) {
@@ -73,6 +79,7 @@ const OptionSection = ({ type, items, t, onRefresh }) => {
     return Object.keys(nextErrors).length === 0;
   };
 
+  // Submit the current form state and handle the success or error path.
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (!validate()) {
@@ -96,6 +103,7 @@ const OptionSection = ({ type, items, t, onRefresh }) => {
     }
   };
 
+  // Handle edit for this screen or component.
   const handleEdit = (item) => {
     setEditingId(item.id);
     setForm({
@@ -115,6 +123,7 @@ const OptionSection = ({ type, items, t, onRefresh }) => {
     setErrors({});
   };
 
+  // Handle delete for this screen or component.
   const handleDelete = async (itemId) => {
     const confirmed = window.confirm(t("options.deleteConfirm"));
     if (!confirmed) return;
@@ -336,6 +345,7 @@ const OptionSection = ({ type, items, t, onRefresh }) => {
   );
 };
 
+// Render the options page and keep its local UI behavior together.
 const OptionsPage = ({ currentUser }) => {
   const { t } = useLanguage();
   const [data, setData] = useState({
@@ -353,6 +363,7 @@ const OptionsPage = ({ currentUser }) => {
   const canManageOptions =
     currentUser?.role === "admin" || (currentUser?.permissions || []).includes("settings.write");
 
+  // Keep load all focused and easier to understand from the code nearby.
   const loadAll = async () => {
     const responses = await Promise.all(optionTypes.map((item) => fetchOptions(item.key)));
     setData(

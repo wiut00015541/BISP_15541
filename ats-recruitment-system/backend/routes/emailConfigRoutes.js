@@ -1,3 +1,4 @@
+// emailConfigRoutes wires endpoint paths to the matching controllers.
 const express = require("express");
 const emailConfigController = require("../controllers/emailConfigController");
 const authMiddleware = require("../middleware/authMiddleware");

@@ -1,3 +1,4 @@
+// CandidateCreate screen for the frontend app.
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useLanguage } from "../i18n.jsx";
@@ -17,11 +18,14 @@ const initialCandidateForm = {
   jobId: "",
 };
 
+// Keep the input styling in one place so the form stays consistent.
 const inputClass =
   "rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-cyan-400 focus:bg-white";
 
+// Only open jobs can receive new candidates.
 const isOpenJob = (job) => String(job?.status || "").toUpperCase() === "OPEN";
 
+// Render the candidate create page and keep its local UI behavior together.
 const CandidateCreatePage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -36,6 +40,7 @@ const CandidateCreatePage = () => {
   const openJobOptions = jobOptions.filter((job) => isOpenJob(job));
 
   useEffect(() => {
+    // Load the data this screen needs before updating local state.
     const load = async () => {
       const preselectedJobId = searchParams.get("jobId") || "";
       const [lookupData, jobsData] = await Promise.all([
@@ -50,6 +55,7 @@ const CandidateCreatePage = () => {
       setJobOptions(allJobs);
       setForm((prev) => ({
         ...prev,
+        // Keep the job preselected when we arrive here from a job page.
         jobId:
           prev.jobId ||
           (hasPreselectedOpenJob ? preselectedJobId : "") ||
@@ -66,6 +72,7 @@ const CandidateCreatePage = () => {
     load();
   }, [searchParams]);
 
+  // Validate the current input before continuing to the next step.
   const validate = () => {
     const emailIsValid = /\S+@\S+\.\S+/.test(form.email);
     if (!form.firstName.trim() || !form.lastName.trim() || !form.email.trim() || !form.jobId) {
@@ -82,6 +89,7 @@ const CandidateCreatePage = () => {
     return "";
   };
 
+  // Submit the current form state and handle the success or error path.
   const handleSubmit = async (event) => {
     event.preventDefault();
     const validationMessage = validate();
@@ -119,6 +127,7 @@ const CandidateCreatePage = () => {
 
   return (
     <section className="space-y-5">
+      {/* Page heading */}
       <div>
         <h1 className="text-3xl font-semibold tracking-tight text-slate-950">{t("candidates.newButton")}</h1>
         <p className="mt-2 text-slate-500">{t("candidates.createTitle")}</p>
@@ -128,6 +137,7 @@ const CandidateCreatePage = () => {
         onSubmit={handleSubmit}
         className="grid items-start gap-4 rounded-[30px] border border-white/80 bg-white/90 p-6 shadow-[0_18px_60px_rgba(15,23,42,0.08)] md:grid-cols-2 xl:grid-cols-4"
       >
+        {/* Basic candidate details */}
         <input
           className={`${inputClass} ${
             error ? "border-rose-300 focus:border-rose-400" : "border-slate-200 focus:border-cyan-400"
@@ -190,6 +200,7 @@ const CandidateCreatePage = () => {
         {openJobOptions.length === 0 ? (
           <p className="text-sm text-slate-500 xl:col-span-2">{t("candidates.noJobsAvailable")}</p>
         ) : null}
+        {/* Multi-select skills so recruiters can tag the candidate up front. */}
         <select
           multiple
           className={`min-h-32 ${inputClass} xl:col-span-4`}
@@ -214,6 +225,7 @@ const CandidateCreatePage = () => {
             onChange={(event) => setResumeFile(event.target.files?.[0] || null)}
           />
         </label>
+        {/* Inline error plus the main submit action. */}
         <div className="xl:col-span-4">
           {error ? <p className="mb-3 text-sm text-rose-600">{error}</p> : null}
           <button

@@ -1,3 +1,4 @@
+// Candidates screen for the frontend app.
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import FilterBar from "../components/FilterBar";
@@ -7,6 +8,7 @@ import { fetchCandidates } from "../services/candidatesService";
 
 const apiBaseUrl = (import.meta.env.VITE_API_URL || "http://localhost:5000/api").replace(/\/api$/, "");
 
+// Render the candidates page and keep its local UI behavior together.
 const CandidatesPage = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
@@ -15,6 +17,7 @@ const CandidatesPage = () => {
   const [skill, setSkill] = useState("");
 
   useEffect(() => {
+    // Load the data this screen needs before updating local state.
     const load = async () => {
       const response = await fetchCandidates({ ...params, skill });
       setResult(response);

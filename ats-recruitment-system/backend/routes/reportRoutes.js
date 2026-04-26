@@ -1,3 +1,4 @@
+// reportRoutes wires endpoint paths to the matching controllers.
 const express = require("express");
 const reportsController = require("../controllers/reportsController");
 const authMiddleware = require("../middleware/authMiddleware");

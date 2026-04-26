@@ -1,3 +1,4 @@
+// Seed script for the default ATS roles, users, stages, and options.
 const { PrismaClient } = require("@prisma/client");
 const bcrypt = require("bcryptjs");
 

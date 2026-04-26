@@ -1,3 +1,4 @@
+// Top-level app wiring for routes, auth, and shared layout.
 import { Navigate, Route, Routes } from "react-router-dom";
 import Layout from "./components/Layout";
 import { useAuth } from "./hooks/useAuth";
@@ -19,6 +20,7 @@ import UsersPage from "./pages/UsersPage";
 import OptionsPage from "./pages/OptionsPage";
 import ProfilePage from "./pages/ProfilePage";
 
+// Keep protected app focused and easier to understand from the code nearby.
 const ProtectedApp = ({ auth }) => {
   return (
     <Layout user={auth.user} onLogout={auth.logout}>
@@ -46,6 +48,7 @@ const ProtectedApp = ({ auth }) => {
   );
 };
 
+// Keep app focused and easier to understand from the code nearby.
 const App = () => {
   const auth = useAuth();
 

@@ -1,3 +1,4 @@
+// authService contains backend business logic for this area.
 const bcrypt = require("bcryptjs");
 const prisma = require("../config/prisma");
 const { generateToken } = require("../utils/jwt");
@@ -23,6 +24,7 @@ const sanitizeUser = (user) => ({
   permissions: user.role?.rolePermissions?.map((item) => item.permission.key) || [],
 });
 
+// Keep register inside the service layer instead of the controller.
 const register = async ({ firstName, lastName, email, password, roleName = "recruiter", departmentId }) => {
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
@@ -56,6 +58,7 @@ const register = async ({ firstName, lastName, email, password, roleName = "recr
   return { user: sanitizeUser(user), token };
 };
 
+// Handle the login flow for this part of the app.
 const login = async ({ email, password }) => {
   const user = await prisma.user.findUnique({
     where: { email },

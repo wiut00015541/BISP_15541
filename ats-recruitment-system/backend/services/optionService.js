@@ -1,3 +1,4 @@
+// optionService contains backend business logic for this area.
 const { randomUUID } = require("crypto");
 const prisma = require("../config/prisma");
 
@@ -138,6 +139,7 @@ const OPTION_CONFIG = {
   },
 };
 
+// Load configuration with the business rules for this area.
 const getConfig = (type) => {
   const config = OPTION_CONFIG[type];
   if (!config) {
@@ -148,6 +150,7 @@ const getConfig = (type) => {
   return config;
 };
 
+// Validate payload before the database work starts.
 const validatePayload = (type, payload) => {
   const config = getConfig(type);
   const errors = {};
@@ -170,6 +173,7 @@ const validatePayload = (type, payload) => {
   return config;
 };
 
+// Parse setting items into a safer internal format.
 const parseSettingItems = (value) => {
   try {
     const parsed = JSON.parse(value || "[]");
@@ -179,6 +183,7 @@ const parseSettingItems = (value) => {
   }
 };
 
+// Load setting items with the business rules for this area.
 const getSettingItems = async (config) => {
   const setting = await prisma.systemSetting.findUnique({
     where: { key: config.settingKey },
@@ -187,6 +192,7 @@ const getSettingItems = async (config) => {
   return parseSettingItems(setting?.value);
 };
 
+// Keep save setting items inside the service layer instead of the controller.
 const saveSettingItems = async (config, items) => {
   await prisma.systemSetting.upsert({
     where: { key: config.settingKey },
@@ -200,6 +206,7 @@ const saveSettingItems = async (config, items) => {
   });
 };
 
+// Load options with the business rules for this area.
 const getOptions = async (type) => {
   const config = getConfig(type);
   if (config.storage === "setting") {
@@ -209,6 +216,7 @@ const getOptions = async (type) => {
   return config.model.findMany({ orderBy: config.orderBy });
 };
 
+// Create option and apply the related business rules.
 const createOption = async (type, payload) => {
   const config = validatePayload(type, payload);
 
@@ -246,6 +254,7 @@ const createOption = async (type, payload) => {
   return config.model.create({ data: config.mapCreate(payload) });
 };
 
+// Update option while keeping the workflow rules consistent.
 const updateOption = async (type, id, payload) => {
   const config = validatePayload(type, payload);
 
@@ -295,6 +304,7 @@ const updateOption = async (type, id, payload) => {
   });
 };
 
+// Delete option after the access checks pass.
 const deleteOption = async (type, id) => {
   const config = getConfig(type);
 

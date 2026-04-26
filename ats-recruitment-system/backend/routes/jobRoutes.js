@@ -1,3 +1,4 @@
+// jobRoutes wires endpoint paths to the matching controllers.
 const express = require("express");
 const jobsController = require("../controllers/jobsController");
 const authMiddleware = require("../middleware/authMiddleware");

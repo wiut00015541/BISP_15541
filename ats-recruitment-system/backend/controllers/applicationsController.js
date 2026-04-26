@@ -1,5 +1,7 @@
+// applicationsController translates HTTP requests into service calls.
 const applicationService = require("../services/applicationService");
 
+// Handle the request and return applications to the client.
 const getApplications = async (req, res, next) => {
   try {
     const result = await applicationService.getApplications(req.query, req.user);
@@ -9,6 +11,7 @@ const getApplications = async (req, res, next) => {
   }
 };
 
+// Handle creation for application and send the result back.
 const createApplication = async (req, res, next) => {
   try {
     const application = await applicationService.createApplication(req.body, req.user.id, req.user);
@@ -18,6 +21,7 @@ const createApplication = async (req, res, next) => {
   }
 };
 
+// Handle updates for stage and return the latest state.
 const updateStage = async (req, res, next) => {
   try {
     const application = await applicationService.updateApplicationStage(
@@ -33,6 +37,7 @@ const updateStage = async (req, res, next) => {
   }
 };
 
+// Handle revert hired before the request moves into the service layer.
 const revertHired = async (req, res, next) => {
   try {
     const application = await applicationService.revertHiredApplication(req.params.id, req.user.id, req.user);
@@ -42,6 +47,7 @@ const revertHired = async (req, res, next) => {
   }
 };
 
+// Handle schedule interview before the request moves into the service layer.
 const scheduleInterview = async (req, res, next) => {
   try {
     const interview = await applicationService.scheduleInterview(req.params.id, req.body, req.user);
@@ -51,6 +57,7 @@ const scheduleInterview = async (req, res, next) => {
   }
 };
 
+// Handle add interview feedback through the controller layer.
 const addInterviewFeedback = async (req, res, next) => {
   try {
     const feedback = await applicationService.addInterviewFeedback(req.params.id, req.body, req.user.id, req.user);

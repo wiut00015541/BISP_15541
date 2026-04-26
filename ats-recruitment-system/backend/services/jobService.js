@@ -1,3 +1,4 @@
+// jobService contains backend business logic for this area.
 const prisma = require("../config/prisma");
 const { parsePagination, parseSort } = require("../utils/apiFeatures");
 const { buildAssignedJobScope } = require("../utils/accessScope");
@@ -14,6 +15,7 @@ const includeJobRelations = {
   skills: { include: { skill: true } },
 };
 
+// Build the Prisma filter used for job.
 const buildJobWhere = (query, user) => {
   const where = buildAssignedJobScope(user);
 
@@ -48,6 +50,7 @@ const buildJobWhere = (query, user) => {
   return where;
 };
 
+// Validate job payload before the database work starts.
 const validateJobPayload = async (data) => {
   const errors = {};
 
@@ -134,6 +137,7 @@ const validateJobPayload = async (data) => {
   }
 };
 
+// Load jobs with the business rules for this area.
 const getJobs = async (query, user) => {
   const where = buildJobWhere(query, user);
   const { page, limit, skip } = parsePagination(query);
@@ -166,6 +170,7 @@ const getJobs = async (query, user) => {
   };
 };
 
+// Load job by id with the business rules for this area.
 const getJobById = (id, user) => {
   return prisma.job.findFirst({
     where: {
@@ -184,6 +189,7 @@ const getJobById = (id, user) => {
   });
 };
 
+// Create job and apply the related business rules.
 const createJob = async (data, userId) => {
   await validateJobPayload(data);
 
@@ -207,6 +213,7 @@ const createJob = async (data, userId) => {
   });
 };
 
+// Update job while keeping the workflow rules consistent.
 const updateJob = async (id, data, user) => {
   await validateJobPayload(data);
 
@@ -240,6 +247,7 @@ const updateJob = async (id, data, user) => {
   });
 };
 
+// Delete job after the access checks pass.
 const deleteJob = async (id, user) => {
   const existingJob = await prisma.job.findFirst({
     where: { id, ...buildAssignedJobScope(user) },

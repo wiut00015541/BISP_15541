@@ -1,3 +1,4 @@
+// candidateRoutes wires endpoint paths to the matching controllers.
 const express = require("express");
 const candidatesController = require("../controllers/candidatesController");
 const authMiddleware = require("../middleware/authMiddleware");

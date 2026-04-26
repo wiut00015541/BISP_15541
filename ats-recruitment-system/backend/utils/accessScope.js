@@ -1,5 +1,7 @@
+// accessScope holds shared backend helpers used across the app.
 const isAdmin = (user) => user?.role === "admin";
 
+// Build the job filter that limits non-admin users to their assigned jobs.
 const buildAssignedJobScope = (user) => {
   if (isAdmin(user)) {
     return {};
@@ -10,6 +12,7 @@ const buildAssignedJobScope = (user) => {
   };
 };
 
+// Build the nested job filter used inside related Prisma queries.
 const buildAssignedJobRelationScope = (user) => {
   if (isAdmin(user)) {
     return {};

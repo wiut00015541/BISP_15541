@@ -1,12 +1,15 @@
+// Reports screen for the frontend app.
 import { useEffect, useState } from "react";
 import { useLanguage } from "../i18n.jsx";
 import { fetchHiringFunnelReport } from "../services/reportsService";
 
+// Render the reports page and keep its local UI behavior together.
 const ReportsPage = () => {
   const { t, getStageLabel } = useLanguage();
   const [report, setReport] = useState([]);
 
   useEffect(() => {
+    // Load the data this screen needs before updating local state.
     const load = async () => {
       const response = await fetchHiringFunnelReport();
       setReport(response.report || []);

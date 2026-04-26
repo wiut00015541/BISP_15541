@@ -1,3 +1,4 @@
+// rbacMiddleware runs request checks before the controller layer.
 const requirePermission = (...requiredPermissions) => {
   return (req, res, next) => {
     const userPermissions = req.user?.permissions || [];

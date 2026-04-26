@@ -1,3 +1,4 @@
+// userService contains backend business logic for this area.
 const bcrypt = require("bcryptjs");
 const prisma = require("../config/prisma");
 
@@ -33,6 +34,7 @@ const sanitizeCurrentUser = (user) => ({
   lastLoginAt: user.lastLoginAt,
 });
 
+// Validate user payload before the database work starts.
 const validateUserPayload = async (payload, existingUserId = null) => {
   const errors = {};
 
@@ -88,6 +90,7 @@ const validateUserPayload = async (payload, existingUserId = null) => {
   return role;
 };
 
+// Keep ensure manageable user inside the service layer instead of the controller.
 const ensureManageableUser = async (targetUserId, actorUserId) => {
   const user = await prisma.user.findUnique({
     where: { id: targetUserId },
@@ -109,6 +112,7 @@ const ensureManageableUser = async (targetUserId, actorUserId) => {
   return user;
 };
 
+// Keep ensure admin safety inside the service layer instead of the controller.
 const ensureAdminSafety = async (userId, nextRoleName, nextIsActive, isDelete = false) => {
   const user = await prisma.user.findUnique({
     where: { id: userId },
@@ -142,6 +146,7 @@ const ensureAdminSafety = async (userId, nextRoleName, nextIsActive, isDelete = 
   }
 };
 
+// Load users with the business rules for this area.
 const getUsers = async (query) => {
   const where = {};
 
@@ -162,6 +167,7 @@ const getUsers = async (query) => {
   });
 };
 
+// Load current user with the business rules for this area.
 const getCurrentUser = async (userId) => {
   const user = await prisma.user.findUnique({
     where: { id: userId },
@@ -177,6 +183,7 @@ const getCurrentUser = async (userId) => {
   return sanitizeCurrentUser(user);
 };
 
+// Update current user while keeping the workflow rules consistent.
 const updateCurrentUser = async (userId, payload) => {
   const errors = {};
 
@@ -235,6 +242,7 @@ const updateCurrentUser = async (userId, payload) => {
   return sanitizeCurrentUser(user);
 };
 
+// Create user and apply the related business rules.
 const createUser = async (payload) => {
   const role = await validateUserPayload(payload);
   const passwordHash = await bcrypt.hash(payload.password, 10);
@@ -253,6 +261,7 @@ const createUser = async (payload) => {
   });
 };
 
+// Refresh the stored user profile without replacing the current token.
 const updateUser = async (userId, payload, actorUserId) => {
   await ensureManageableUser(userId, actorUserId);
   const role = await validateUserPayload(payload, userId);
@@ -283,6 +292,7 @@ const updateUser = async (userId, payload, actorUserId) => {
   });
 };
 
+// Keep toggle user status inside the service layer instead of the controller.
 const toggleUserStatus = async (userId, actorUserId) => {
   const user = await ensureManageableUser(userId, actorUserId);
   await ensureAdminSafety(userId, user.role?.name, !user.isActive);
@@ -294,6 +304,7 @@ const toggleUserStatus = async (userId, actorUserId) => {
   });
 };
 
+// Delete user after the access checks pass.
 const deleteUser = async (userId, actorUserId) => {
   await ensureManageableUser(userId, actorUserId);
   await ensureAdminSafety(userId, "admin", false, true);

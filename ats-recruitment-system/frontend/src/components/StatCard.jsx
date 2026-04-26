@@ -1,3 +1,4 @@
+// StatCard is a shared UI building block.
 const StatCard = ({ title, value, caption, accent = "cyan" }) => {
   const accentClasses = {
     cyan: "from-cyan-500/10 to-sky-500/5 text-cyan-700",

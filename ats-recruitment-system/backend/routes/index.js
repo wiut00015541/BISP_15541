@@ -1,3 +1,4 @@
+// index wires endpoint paths to the matching controllers.
 const express = require("express");
 
 const authRoutes = require("./authRoutes");

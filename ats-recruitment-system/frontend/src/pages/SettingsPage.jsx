@@ -1,6 +1,8 @@
+// Settings screen for the frontend app.
 import { Link, NavLink } from "react-router-dom";
 import { useLanguage } from "../i18n.jsx";
 
+// Render the settings page and keep its local UI behavior together.
 const SettingsPage = ({ currentUser }) => {
   const { t } = useLanguage();
   const canManageUsers =

@@ -1,3 +1,4 @@
+// NotificationTray is a shared UI building block.
 import { useNotifications } from "../notifications.jsx";
 
 const variants = {
@@ -6,6 +7,7 @@ const variants = {
   info: "border-cyan-200 bg-cyan-50 text-cyan-800",
 };
 
+// Render the notification tray UI block with the props it receives.
 const NotificationTray = () => {
   const { notifications, removeNotification } = useNotifications();
 

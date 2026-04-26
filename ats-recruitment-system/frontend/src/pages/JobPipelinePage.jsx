@@ -1,3 +1,4 @@
+// JobPipeline screen for the frontend app.
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import PipelineBoard from "../components/PipelineBoard";
@@ -8,6 +9,7 @@ import { fetchJobById } from "../services/jobsService";
 
 const stages = ["Applied", "Screening", "Interview", "Offer", "Hired", "Rejected"];
 
+// Render the job pipeline page and keep its local UI behavior together.
 const JobPipelinePage = ({ currentUser }) => {
   const { id } = useParams();
   const { t } = useLanguage();
@@ -17,6 +19,7 @@ const JobPipelinePage = ({ currentUser }) => {
   const [movingApplicationId, setMovingApplicationId] = useState(null);
 
   useEffect(() => {
+    // Load the data this screen needs before updating local state.
     const load = async () => {
       const [jobData, applicationData] = await Promise.all([
         fetchJobById(id),
@@ -43,6 +46,7 @@ const JobPipelinePage = ({ currentUser }) => {
     }, {});
   }, [applications]);
 
+  // Handle move for this screen or component.
   const handleMove = async (applicationId, nextStage) => {
     const previousApplications = applications;
     const targetApplication = applications.find((item) => item.id === applicationId);

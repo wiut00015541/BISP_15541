@@ -1,3 +1,4 @@
+// authRoutes wires endpoint paths to the matching controllers.
 const express = require("express");
 const authController = require("../controllers/authController");
 const authMiddleware = require("../middleware/authMiddleware");

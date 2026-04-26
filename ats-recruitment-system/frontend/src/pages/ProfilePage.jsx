@@ -1,13 +1,16 @@
+// Profile screen for the frontend app.
 import { useEffect, useMemo, useState } from "react";
 import { useLanguage } from "../i18n.jsx";
 import { useNotifications } from "../notifications.jsx";
 import { fetchCurrentUser, updateCurrentUser } from "../services/usersService";
 
+// Keep input class focused and easier to understand from the code nearby.
 const inputClass = (error) =>
   `w-full rounded-2xl border bg-slate-50 px-4 py-3 text-sm outline-none focus:bg-white ${
     error ? "border-rose-300 focus:border-rose-400" : "border-slate-200 focus:border-cyan-400"
   }`;
 
+// Render the profile page and keep its local UI behavior together.
 const ProfilePage = ({ currentUser, onUserUpdate }) => {
   const { t } = useLanguage();
   const notifications = useNotifications();
@@ -22,6 +25,7 @@ const ProfilePage = ({ currentUser, onUserUpdate }) => {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
+    // Keep load profile focused and easier to understand from the code nearby.
     const loadProfile = async () => {
       const data = await fetchCurrentUser();
       setProfile(data);
@@ -44,6 +48,7 @@ const ProfilePage = ({ currentUser, onUserUpdate }) => {
     return profile.permissions.join(", ");
   }, [profile, t]);
 
+  // Validate the current input before continuing to the next step.
   const validate = () => {
     const nextErrors = {};
 
@@ -61,6 +66,7 @@ const ProfilePage = ({ currentUser, onUserUpdate }) => {
     return Object.keys(nextErrors).length === 0;
   };
 
+  // Submit the current form state and handle the success or error path.
   const handleSubmit = async (event) => {
     event.preventDefault();
 

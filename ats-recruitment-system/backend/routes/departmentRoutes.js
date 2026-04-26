@@ -1,3 +1,4 @@
+// departmentRoutes wires endpoint paths to the matching controllers.
 const express = require("express");
 const departmentsController = require("../controllers/departmentsController");
 const authMiddleware = require("../middleware/authMiddleware");

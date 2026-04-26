@@ -1,3 +1,4 @@
+// JobDetails screen for the frontend app.
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useLanguage } from "../i18n.jsx";
@@ -6,6 +7,7 @@ import { fetchJobById, updateJob } from "../services/jobsService";
 
 const stages = ["Applied", "Screening", "Interview", "Offer", "Hired", "Rejected"];
 
+// Keep format currency focused and easier to understand from the code nearby.
 const formatCurrency = (value) => {
   if (value === null || value === undefined || value === "") {
     return null;
@@ -18,6 +20,7 @@ const formatCurrency = (value) => {
   }).format(Number(value));
 };
 
+// Render the job details page and keep its local UI behavior together.
 const JobDetailsPage = ({ currentUser }) => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -30,6 +33,7 @@ const JobDetailsPage = ({ currentUser }) => {
     currentUser?.role === "admin" || (currentUser?.permissions || []).includes("jobs.write");
 
   useEffect(() => {
+    // Load the data this screen needs before updating local state.
     const load = async () => {
       const jobData = await fetchJobById(id);
       setJob(jobData);
@@ -48,6 +52,7 @@ const JobDetailsPage = ({ currentUser }) => {
 
   const totalCandidates = job?.applications?.length || 0;
   const createdAtLabel = job?.createdAt ? new Date(job.createdAt).toLocaleDateString() : "-";
+  // Keep salary range focused and easier to understand from the code nearby.
   const salaryRange = (() => {
     const min = formatCurrency(job?.minSalary);
     const max = formatCurrency(job?.maxSalary);
@@ -64,6 +69,7 @@ const JobDetailsPage = ({ currentUser }) => {
     return t("jobs.notSpecified");
   })();
 
+  // Handle toggle status for this screen or component.
   const handleToggleStatus = async () => {
     if (!job) {
       return;

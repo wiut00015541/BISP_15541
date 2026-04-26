@@ -1,3 +1,4 @@
+// candidateService contains backend business logic for this area.
 const path = require("path");
 const prisma = require("../config/prisma");
 const { parsePagination, parseSort } = require("../utils/apiFeatures");
@@ -5,6 +6,7 @@ const { isAdmin } = require("../utils/accessScope");
 const { sendEmail, renderEmailTemplate, getManagedEmailTemplate } = require("../utils/emailService");
 const { analyzeResume } = require("./aiService");
 
+// Normalize skill ids before it is reused elsewhere.
 const normalizeSkillIds = (skillIds) => {
   if (!skillIds) {
     return [];
@@ -15,6 +17,7 @@ const normalizeSkillIds = (skillIds) => {
   }
 
   try {
+    // The frontend sends this as JSON, but we still accept older comma-separated input.
     const parsed = JSON.parse(skillIds);
     return Array.isArray(parsed) ? parsed.filter(Boolean) : [];
   } catch (_error) {
@@ -25,6 +28,7 @@ const normalizeSkillIds = (skillIds) => {
   }
 };
 
+// Keep serialize communication content inside the service layer instead of the controller.
 const serializeCommunicationContent = ({ subject, body }) =>
   JSON.stringify({
     format: "candidate_email",
@@ -32,6 +36,7 @@ const serializeCommunicationContent = ({ subject, body }) =>
     body,
   });
 
+// Parse communication content into a safer internal format.
 const parseCommunicationContent = (content) => {
   try {
     const parsed = JSON.parse(content);
@@ -45,10 +50,12 @@ const parseCommunicationContent = (content) => {
   return { subject: "Communication", body: content };
 };
 
+// Build the Prisma filter used for accessible candidate.
 const buildAccessibleCandidateWhere = (query, user) => {
   const where = {};
 
   if (!isAdmin(user)) {
+    // Non-admin users can only see candidates they own or touch through assigned jobs.
     where.OR = [
       { assignedToId: user.id },
       {
@@ -89,6 +96,7 @@ const buildAccessibleCandidateWhere = (query, user) => {
   return where;
 };
 
+// Pull the related data the profile screens expect in one place.
 const includeCandidateRelations = {
   skills: { include: { skill: true } },
   resumes: {
@@ -130,6 +138,7 @@ const includeCandidateRelations = {
   },
 };
 
+// Validate candidate payload before the database work starts.
 const validateCandidatePayload = (payload) => {
   const errors = {};
 
@@ -163,6 +172,7 @@ const validateCandidatePayload = (payload) => {
   }
 };
 
+// Load candidates with the business rules for this area.
 const getCandidates = async (query, user) => {
   const where = buildAccessibleCandidateWhere(query, user);
   const { page, limit, skip } = parsePagination(query);
@@ -192,6 +202,7 @@ const getCandidates = async (query, user) => {
   };
 };
 
+// Map candidate profile into the shape the rest of the app expects.
 const mapCandidateProfile = (candidate) => {
   if (!candidate) {
     return null;
@@ -210,6 +221,7 @@ const mapCandidateProfile = (candidate) => {
   };
 };
 
+// Load candidate by id with the business rules for this area.
 const getCandidateById = async (id, user) => {
   const candidate = await prisma.candidate.findFirst({
     where: {
@@ -241,6 +253,7 @@ const getCandidateById = async (id, user) => {
   return mapCandidateProfile(candidate);
 };
 
+// Run analyze candidate resume and store the result in a usable shape.
 const analyzeCandidateResume = async (candidateId, resumeId, user) => {
   const candidate = await prisma.candidate.findFirst({
     where: {
@@ -303,6 +316,7 @@ const analyzeCandidateResume = async (candidateId, resumeId, user) => {
   };
 };
 
+// Create candidate and apply the related business rules.
 const createCandidate = async (payload, file, uploadedById, user) => {
   const skills = normalizeSkillIds(payload.skillIds);
   validateCandidatePayload(payload);
@@ -334,6 +348,7 @@ const createCandidate = async (payload, file, uploadedById, user) => {
   let candidate;
 
   try {
+    // Candidate, first application, and history entry should either all succeed or all fail.
     candidate = await prisma.$transaction(async (tx) => {
       const createdCandidate = await tx.candidate.create({
         data: {
@@ -387,6 +402,7 @@ const createCandidate = async (payload, file, uploadedById, user) => {
   }
 
   if (file) {
+    // Store the resume after the main transaction so upload issues do not orphan the candidate.
     await prisma.resume.create({
       data: {
         candidateId: candidate.id,
@@ -402,6 +418,7 @@ const createCandidate = async (payload, file, uploadedById, user) => {
   });
 };
 
+// Update candidate while keeping the workflow rules consistent.
 const updateCandidate = async (id, payload, file, uploadedById, user) => {
   validateCandidatePayload({ ...payload, jobId: payload.jobId || "existing" });
   const skills = normalizeSkillIds(payload.skillIds);
@@ -451,6 +468,7 @@ const updateCandidate = async (id, payload, file, uploadedById, user) => {
   });
 };
 
+// Delete candidate after the access checks pass.
 const deleteCandidate = async (id, user) => {
   const existing = await prisma.candidate.findFirst({
     where: {
@@ -470,6 +488,7 @@ const deleteCandidate = async (id, user) => {
   });
 };
 
+// Add candidate note inside the current workflow.
 const addCandidateNote = async (candidateId, authorId, content, isPrivate = false, user) => {
   const existing = await prisma.candidate.findFirst({
     where: {
@@ -499,6 +518,7 @@ const addCandidateNote = async (candidateId, authorId, content, isPrivate = fals
   });
 };
 
+// Send candidate communication and persist the activity when needed.
 const sendCandidateCommunication = async (candidateId, payload, sender, user) => {
   const candidate = await prisma.candidate.findFirst({
     where: {

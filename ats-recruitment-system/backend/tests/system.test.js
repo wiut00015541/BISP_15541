@@ -1,3 +1,4 @@
+// Automated backend tests for shared system behavior.
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const path = require("node:path");
@@ -8,11 +9,13 @@ const projectRoot = path.join(__dirname, "..");
 
 const resolveFromBackend = (...parts) => path.join(projectRoot, ...parts);
 
+// Keep fresh require focused and easier to understand from the code nearby.
 const freshRequire = (modulePath) => {
   delete require.cache[require.resolve(modulePath)];
   return require(modulePath);
 };
 
+// Keep with mocked dependency focused and easier to understand from the code nearby.
 const withMockedDependency = (dependencyPath, mockExports, loadModule) => {
   const resolvedDependency = require.resolve(dependencyPath);
   const original = require.cache[resolvedDependency];

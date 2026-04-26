@@ -1,3 +1,4 @@
+// Express server entry point for the ATS backend.
 const express = require("express");
 const cors = require("cors");
 const morgan = require("morgan");

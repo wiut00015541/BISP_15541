@@ -1,3 +1,4 @@
+// CandidateProfile screen for the frontend app.
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useLanguage } from "../i18n.jsx";
@@ -40,11 +41,13 @@ const emptyFeedbackForm = {
   recommendation: "",
 };
 
+// Keep input class focused and easier to understand from the code nearby.
 const inputClass = (error) =>
   `w-full rounded-2xl border bg-slate-50 px-4 py-3 text-sm outline-none focus:bg-white ${
     error ? "border-rose-300 focus:border-rose-400" : "border-slate-200 focus:border-cyan-400"
   }`;
 
+// Keep get stage badge class focused and easier to understand from the code nearby.
 const getStageBadgeClass = (stageName) => {
   const normalized = String(stageName || "").toLowerCase();
 
@@ -71,6 +74,7 @@ const getStageBadgeClass = (stageName) => {
   return "bg-slate-50 text-slate-700 border-slate-200";
 };
 
+// Render the candidate profile page and keep its local UI behavior together.
 const CandidateProfilePage = () => {
   const { id } = useParams();
   const { t, getStageLabel } = useLanguage();
@@ -97,6 +101,7 @@ const CandidateProfilePage = () => {
     { key: "applications", label: t("pipeline.title") },
   ];
 
+  // Keep load candidate focused and easier to understand from the code nearby.
   const loadCandidate = async () => {
     setLoading(true);
     try {
@@ -118,6 +123,7 @@ const CandidateProfilePage = () => {
   }, [id]);
 
   useEffect(() => {
+    // Keep load lookups focused and easier to understand from the code nearby.
     const loadLookups = async () => {
       const data = await fetchLookups();
       setEmailTemplates(data.emailTemplates || []);
@@ -161,6 +167,7 @@ const CandidateProfilePage = () => {
 
   const getFeedbackForm = (interviewId) => feedbackForms[interviewId] || emptyFeedbackForm;
 
+  // Keep interpolate template focused and easier to understand from the code nearby.
   const interpolateTemplate = (value, template = {}) => {
     const primaryApplication = candidate?.applications?.[0];
     const formattedDate = interviewForm.scheduledAt
@@ -188,6 +195,7 @@ const CandidateProfilePage = () => {
     [candidate, selectedResumeId]
   );
 
+  // Keep get resume extension focused and easier to understand from the code nearby.
   const getResumeExtension = (resume) => {
     const fileUrl = resume?.fileUrl || "";
     const cleanUrl = fileUrl.split("?")[0];
@@ -195,11 +203,13 @@ const CandidateProfilePage = () => {
     return parts.length > 1 ? parts.pop().toLowerCase() : "";
   };
 
+  // Keep is inline preview supported focused and easier to understand from the code nearby.
   const isInlinePreviewSupported = (resume) => {
     const extension = getResumeExtension(resume);
     return ["pdf", "png", "jpg", "jpeg"].includes(extension);
   };
 
+  // Handle add review for this screen or component.
   const handleAddReview = async (event) => {
     event.preventDefault();
     if (!reviewForm.content.trim()) {
@@ -219,6 +229,7 @@ const CandidateProfilePage = () => {
     }
   };
 
+  // Handle analyze resume for this screen or component.
   const handleAnalyzeResume = async () => {
     if (!selectedResume?.id) {
       return;
@@ -252,6 +263,7 @@ const CandidateProfilePage = () => {
     }
   };
 
+  // Handle send communication for this screen or component.
   const handleSendCommunication = async (event) => {
     event.preventDefault();
     const nextErrors = {};
@@ -281,6 +293,7 @@ const CandidateProfilePage = () => {
     }
   };
 
+  // Handle schedule interview for this screen or component.
   const handleScheduleInterview = async (event) => {
     event.preventDefault();
     const nextErrors = {};
@@ -321,6 +334,7 @@ const CandidateProfilePage = () => {
     }
   };
 
+  // Handle interview feedback for this screen or component.
   const handleInterviewFeedback = async (event, interviewId) => {
     event.preventDefault();
     const form = getFeedbackForm(interviewId);
@@ -355,6 +369,7 @@ const CandidateProfilePage = () => {
     }
   };
 
+  // Handle application stage action for this screen or component.
   const handleApplicationStageAction = async (applicationId, stage, note) => {
     const confirmationMessage =
       stage === "Hired" ? t("candidates.markHiredConfirm") : t("candidates.markWithdrawnConfirm");
@@ -377,6 +392,7 @@ const CandidateProfilePage = () => {
     }
   };
 
+  // Handle revert hired for this screen or component.
   const handleRevertHired = async (applicationId) => {
     if (!window.confirm(t("candidates.revertHiredConfirm"))) {
       return;
@@ -1070,6 +1086,7 @@ const CandidateProfilePage = () => {
     </div>
   );
 
+  // Keep render active tab focused and easier to understand from the code nearby.
   const renderActiveTab = () => {
     if (loading && !candidate) {
       return (

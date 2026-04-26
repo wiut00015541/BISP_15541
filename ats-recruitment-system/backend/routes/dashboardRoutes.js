@@ -1,3 +1,4 @@
+// dashboardRoutes wires endpoint paths to the matching controllers.
 const express = require("express");
 const dashboardController = require("../controllers/dashboardController");
 const authMiddleware = require("../middleware/authMiddleware");

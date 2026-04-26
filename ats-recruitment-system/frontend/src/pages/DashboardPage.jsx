@@ -1,9 +1,11 @@
+// Dashboard screen for the frontend app.
 import { useEffect, useState } from "react";
 import StatCard from "../components/StatCard";
 import LiveBarChart from "../components/LiveBarChart";
 import { useLanguage } from "../i18n.jsx";
 import { fetchDashboardOverview } from "../services/dashboardService";
 
+// Render the dashboard page and keep its local UI behavior together.
 const DashboardPage = () => {
   const { t, getStageLabel } = useLanguage();
   const [overview, setOverview] = useState(null);
@@ -13,6 +15,7 @@ const DashboardPage = () => {
   useEffect(() => {
     let isMounted = true;
 
+    // Load the data this screen needs before updating local state.
     const load = async () => {
       const data = await fetchDashboardOverview();
       if (!isMounted) {
@@ -32,6 +35,7 @@ const DashboardPage = () => {
     };
   }, []);
 
+  // Keep format job status focused and easier to understand from the code nearby.
   const formatJobStatus = (status) => {
     const normalized = String(status || "").toUpperCase();
     const statusMap = {

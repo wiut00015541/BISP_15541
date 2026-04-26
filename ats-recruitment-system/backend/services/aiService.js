@@ -1,3 +1,4 @@
+// aiService contains backend business logic for this area.
 const fs = require("fs");
 const path = require("path");
 const OpenAI = require("openai");
@@ -58,6 +59,7 @@ const buildResponseFormat = () => ({
   },
 });
 
+// Keep build base prompt inside the service layer instead of the controller.
 const buildBasePrompt = () =>
   "You are an ATS resume parser. Extract only factual information from the resume. Return strict JSON matching the schema. Do not invent companies, titles, dates, or skills that are not supported by the input.";
 
@@ -70,6 +72,7 @@ const normalizeAnalysis = (analysis) => ({
   configured: true,
 });
 
+// Create response and apply the related business rules.
 const createResponse = async (input) => {
   const response = await client.responses.create({
     model: RESUME_MODEL,
@@ -80,6 +83,7 @@ const createResponse = async (input) => {
   return normalizeAnalysis(JSON.parse(response.output_text));
 };
 
+// Run analyze resume text and store the result in a usable shape.
 const analyzeResumeText = async (resumeText) => {
   if (!resumeText?.trim()) {
     const error = new Error("resumeText is required");
@@ -108,6 +112,7 @@ const analyzeResumeText = async (resumeText) => {
   ]);
 };
 
+// Run analyze resume file and store the result in a usable shape.
 const analyzeResumeFile = async ({ filePath, filename }) => {
   if (!filePath || !filename) {
     const error = new Error("filePath and filename are required");
@@ -162,6 +167,7 @@ const analyzeResumeFile = async ({ filePath, filename }) => {
   ]);
 };
 
+// Run analyze resume and store the result in a usable shape.
 const analyzeResume = async ({ resumeText, filePath, filename }) => {
   if (resumeText?.trim()) {
     return analyzeResumeText(resumeText);

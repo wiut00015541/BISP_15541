@@ -1,3 +1,4 @@
+// Prisma schema for the ATS database models and relations.
 generator client {
   provider = "prisma-client-js"
 }

@@ -1,3 +1,4 @@
+// Departments screen for the frontend app.
 import { useEffect, useState } from "react";
 import { useLanguage } from "../i18n.jsx";
 import { useNotifications } from "../notifications.jsx";
@@ -13,6 +14,7 @@ const initialForm = {
   description: "",
 };
 
+// Render the departments page and keep its local UI behavior together.
 const DepartmentsPage = () => {
   const { t } = useLanguage();
   const notifications = useNotifications();
@@ -21,6 +23,7 @@ const DepartmentsPage = () => {
   const [editingId, setEditingId] = useState(null);
   const [error, setError] = useState("");
 
+  // Keep load departments focused and easier to understand from the code nearby.
   const loadDepartments = async () => {
     const data = await fetchDepartments();
     setDepartments(data);
@@ -30,6 +33,7 @@ const DepartmentsPage = () => {
     loadDepartments();
   }, []);
 
+  // Validate the current input before continuing to the next step.
   const validate = () => {
     if (!form.name.trim()) {
       setError(t("common.required"));
@@ -39,6 +43,7 @@ const DepartmentsPage = () => {
     return true;
   };
 
+  // Submit the current form state and handle the success or error path.
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (!validate()) {
@@ -61,6 +66,7 @@ const DepartmentsPage = () => {
     }
   };
 
+  // Handle edit for this screen or component.
   const handleEdit = (department) => {
     setEditingId(department.id);
     setForm({
@@ -70,6 +76,7 @@ const DepartmentsPage = () => {
     setError("");
   };
 
+  // Handle delete for this screen or component.
   const handleDelete = async (id) => {
     try {
       await deleteDepartment(id);

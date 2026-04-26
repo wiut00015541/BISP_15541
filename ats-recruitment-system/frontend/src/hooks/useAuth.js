@@ -1,7 +1,9 @@
+// useAuth keeps shared frontend state logic reusable.
 import { useEffect, useState } from "react";
 
 const defaultUser = null;
 
+// Expose auth state and helper actions through one reusable hook.
 export const useAuth = () => {
   const [token, setToken] = useState(localStorage.getItem("ats_token"));
   const [user, setUser] = useState(() => {
@@ -16,6 +18,7 @@ export const useAuth = () => {
     }
   }, [token]);
 
+  // Store the current session in state and localStorage.
   const login = (authPayload) => {
     setToken(authPayload.token);
     setUser(authPayload.user);
@@ -23,6 +26,7 @@ export const useAuth = () => {
     localStorage.setItem("ats_user", JSON.stringify(authPayload.user));
   };
 
+  // Clear the stored session and reset the local auth state.
   const logout = () => {
     setToken(null);
     setUser(defaultUser);
@@ -30,6 +34,7 @@ export const useAuth = () => {
     localStorage.removeItem("ats_user");
   };
 
+  // Refresh the stored user profile without replacing the current token.
   const updateUser = (nextUser) => {
     setUser(nextUser);
     localStorage.setItem("ats_user", JSON.stringify(nextUser));

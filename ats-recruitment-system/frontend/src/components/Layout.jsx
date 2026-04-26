@@ -1,7 +1,9 @@
+// Layout is a shared UI building block.
 import { Link, NavLink } from "react-router-dom";
 import { useLanguage } from "../i18n.jsx";
 import NotificationTray from "./NotificationTray";
 
+// Render the layout UI block with the props it receives.
 const Layout = ({ children, onLogout, user }) => {
   const { language, setLanguage, t } = useLanguage();
   const permissions = user?.permissions || [];

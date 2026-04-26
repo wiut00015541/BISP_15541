@@ -1,6 +1,8 @@
+// authMiddleware runs request checks before the controller layer.
 const prisma = require("../config/prisma");
 const { verifyToken } = require("../utils/jwt");
 
+// Read the bearer token, load the current user, and attach them to the request.
 const authMiddleware = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;

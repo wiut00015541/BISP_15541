@@ -1,9 +1,12 @@
+// emailConfigService contains backend business logic for this area.
 const { sendEmail, verifyEmailConnection, renderEmailTemplate } = require("../utils/emailService");
 
+// Load email status with the business rules for this area.
 const getEmailStatus = async () => {
   return verifyEmailConnection();
 };
 
+// Send test email and persist the activity when needed.
 const sendTestEmail = async ({ to }, user) => {
   if (!to?.trim()) {
     const error = new Error("Recipient email is required");

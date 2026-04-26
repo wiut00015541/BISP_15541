@@ -1,6 +1,8 @@
+// aiController translates HTTP requests into service calls.
 const aiService = require("../services/aiService");
 const prisma = require("../config/prisma");
 
+// Handle analyze resume before the request moves into the service layer.
 const analyzeResume = async (req, res, next) => {
   try {
     const analysis = await aiService.analyzeResume({ resumeText: req.body.resumeText });

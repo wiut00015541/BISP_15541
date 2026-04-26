@@ -1,5 +1,7 @@
+// candidatesController translates HTTP requests into service calls.
 const candidateService = require("../services/candidateService");
 
+// Handle the request and return candidates to the client.
 const getCandidates = async (req, res, next) => {
   try {
     const result = await candidateService.getCandidates(req.query, req.user);
@@ -9,6 +11,7 @@ const getCandidates = async (req, res, next) => {
   }
 };
 
+// Handle the request and return candidate by id to the client.
 const getCandidateById = async (req, res, next) => {
   try {
     const candidate = await candidateService.getCandidateById(req.params.id, req.user);
@@ -21,6 +24,7 @@ const getCandidateById = async (req, res, next) => {
   }
 };
 
+// Handle analyze resume before the request moves into the service layer.
 const analyzeResume = async (req, res, next) => {
   try {
     const result = await candidateService.analyzeCandidateResume(req.params.id, req.params.resumeId, req.user);
@@ -30,6 +34,7 @@ const analyzeResume = async (req, res, next) => {
   }
 };
 
+// Handle creation for candidate and send the result back.
 const createCandidate = async (req, res, next) => {
   try {
     const candidate = await candidateService.createCandidate(req.body, req.file, req.user.id, req.user);
@@ -39,6 +44,7 @@ const createCandidate = async (req, res, next) => {
   }
 };
 
+// Handle updates for candidate and return the latest state.
 const updateCandidate = async (req, res, next) => {
   try {
     const candidate = await candidateService.updateCandidate(req.params.id, req.body, req.file, req.user.id, req.user);
@@ -48,6 +54,7 @@ const updateCandidate = async (req, res, next) => {
   }
 };
 
+// Handle deletion for candidate at the HTTP layer.
 const deleteCandidate = async (req, res, next) => {
   try {
     await candidateService.deleteCandidate(req.params.id, req.user);
@@ -57,6 +64,7 @@ const deleteCandidate = async (req, res, next) => {
   }
 };
 
+// Handle add candidate note through the controller layer.
 const addCandidateNote = async (req, res, next) => {
   try {
     const note = await candidateService.addCandidateNote(
@@ -72,6 +80,7 @@ const addCandidateNote = async (req, res, next) => {
   }
 };
 
+// Handle send communication before the request moves into the service layer.
 const sendCommunication = async (req, res, next) => {
   try {
     const communication = await candidateService.sendCandidateCommunication(req.params.id, req.body, req.user, req.user);

@@ -1,7 +1,9 @@
+// PipelineBoard is a shared UI building block.
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useLanguage } from "../i18n.jsx";
 
+// Render the pipeline board UI block with the props it receives.
 const PipelineBoard = ({ items, candidateLinkBase = "/candidates", onMove, movingApplicationId = null }) => {
   const { t, getStageLabel } = useLanguage();
   const [dragOverStage, setDragOverStage] = useState(null);

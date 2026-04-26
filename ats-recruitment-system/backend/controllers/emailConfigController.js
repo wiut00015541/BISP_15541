@@ -1,5 +1,7 @@
+// emailConfigController translates HTTP requests into service calls.
 const emailConfigService = require("../services/emailConfigService");
 
+// Handle the request and return email status to the client.
 const getEmailStatus = async (_req, res, next) => {
   try {
     const status = await emailConfigService.getEmailStatus();
@@ -9,6 +11,7 @@ const getEmailStatus = async (_req, res, next) => {
   }
 };
 
+// Handle send test email before the request moves into the service layer.
 const sendTestEmail = async (req, res, next) => {
   try {
     await emailConfigService.sendTestEmail(req.body, req.user);

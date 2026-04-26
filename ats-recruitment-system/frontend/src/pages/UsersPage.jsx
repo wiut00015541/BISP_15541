@@ -1,3 +1,4 @@
+// Users screen for the frontend app.
 import { useEffect, useMemo, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useLanguage } from "../i18n.jsx";
@@ -18,11 +19,13 @@ const emptyForm = {
   roleName: "recruiter",
 };
 
+// Keep input class focused and easier to understand from the code nearby.
 const inputClass = (error) =>
   `rounded-2xl border bg-slate-50 px-4 py-3 text-sm outline-none focus:bg-white ${
     error ? "border-rose-300 focus:border-rose-400" : "border-slate-200 focus:border-cyan-400"
   }`;
 
+// Render the users page and keep its local UI behavior together.
 const UsersPage = ({ currentUser }) => {
   const { t } = useLanguage();
   const notifications = useNotifications();
@@ -42,12 +45,14 @@ const UsersPage = ({ currentUser }) => {
     return lookupRoles.length > 0 ? lookupRoles : fallbackRoles;
   }, [roles]);
 
+  // Keep reset form focused and easier to understand from the code nearby.
   const resetForm = () => {
     setForm(emptyForm);
     setErrors({});
     setEditingUserId(null);
   };
 
+  // Keep load data focused and easier to understand from the code nearby.
   const loadData = async () => {
     const [lookupData, userData] = await Promise.all([fetchLookups(), fetchUsers()]);
     setRoles(lookupData.roles || []);
@@ -60,6 +65,7 @@ const UsersPage = ({ currentUser }) => {
     }
   }, [canManageUsers]);
 
+  // Validate the current input before continuing to the next step.
   const validate = () => {
     const nextErrors = {};
 
@@ -83,6 +89,7 @@ const UsersPage = ({ currentUser }) => {
     return Object.keys(nextErrors).length === 0;
   };
 
+  // Submit the current form state and handle the success or error path.
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (!validate()) {
@@ -107,6 +114,7 @@ const UsersPage = ({ currentUser }) => {
     }
   };
 
+  // Handle edit for this screen or component.
   const handleEdit = (user) => {
     setEditingUserId(user.id);
     setForm({
@@ -119,6 +127,7 @@ const UsersPage = ({ currentUser }) => {
     setErrors({});
   };
 
+  // Handle toggle status for this screen or component.
   const handleToggleStatus = async (user) => {
     setBusyUserId(user.id);
     try {
@@ -132,6 +141,7 @@ const UsersPage = ({ currentUser }) => {
     }
   };
 
+  // Handle delete for this screen or component.
   const handleDelete = async (user) => {
     const confirmed = window.confirm(t("users.deleteConfirm"));
     if (!confirmed) {

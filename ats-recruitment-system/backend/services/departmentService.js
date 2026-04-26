@@ -1,11 +1,14 @@
+// departmentService contains backend business logic for this area.
 const prisma = require("../config/prisma");
 
+// Load departments with the business rules for this area.
 const getDepartments = () => {
   return prisma.department.findMany({
     orderBy: { name: "asc" },
   });
 };
 
+// Create department and apply the related business rules.
 const createDepartment = async (payload) => {
   if (!payload.name?.trim()) {
     const error = new Error("Department name is required");
@@ -21,6 +24,7 @@ const createDepartment = async (payload) => {
   });
 };
 
+// Update department while keeping the workflow rules consistent.
 const updateDepartment = async (id, payload) => {
   if (!payload.name?.trim()) {
     const error = new Error("Department name is required");
@@ -37,6 +41,7 @@ const updateDepartment = async (id, payload) => {
   });
 };
 
+// Delete department after the access checks pass.
 const deleteDepartment = (id) => {
   return prisma.department.delete({
     where: { id },

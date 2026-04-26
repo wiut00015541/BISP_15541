@@ -1,3 +1,4 @@
+// LiveBarChart is a shared UI building block.
 const fallbackPalette = [
   "from-cyan-500 to-sky-500",
   "from-emerald-500 to-teal-500",

@@ -1,6 +1,8 @@
+// analyticsService contains backend business logic for this area.
 const prisma = require("../config/prisma");
 const { isAdmin } = require("../utils/accessScope");
 
+// Keep build job scope inside the service layer instead of the controller.
 const buildJobScope = (user) => {
   if (isAdmin(user)) {
     return {};
@@ -11,6 +13,7 @@ const buildJobScope = (user) => {
   };
 };
 
+// Keep build application scope inside the service layer instead of the controller.
 const buildApplicationScope = (user) => {
   if (isAdmin(user)) {
     return {};
@@ -23,6 +26,7 @@ const buildApplicationScope = (user) => {
   };
 };
 
+// Keep build candidate scope inside the service layer instead of the controller.
 const buildCandidateScope = (user) => {
   if (isAdmin(user)) {
     return {};
@@ -39,6 +43,7 @@ const buildCandidateScope = (user) => {
   };
 };
 
+// Load dashboard overview with the business rules for this area.
 const getDashboardOverview = async (user) => {
   const [totalJobs, totalCandidates, stageAggregation, jobStatusAggregation] = await Promise.all([
     prisma.job.count({ where: buildJobScope(user) }),
@@ -134,6 +139,7 @@ const getDashboardOverview = async (user) => {
   };
 };
 
+// Keep build funnel report inside the service layer instead of the controller.
 const buildFunnelReport = async (user) => {
   const stages = await prisma.stage.findMany({
     orderBy: { order: "asc" },

@@ -1,13 +1,18 @@
+// Jobs screen for the frontend app.
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import FilterBar from "../components/FilterBar";
 import { useLanguage } from "../i18n.jsx";
 import { fetchJobs } from "../services/jobsService";
+import { fetchLookups } from "../services/lookupService";
 
+// Render the jobs page and keep its local UI behavior together.
 const JobsPage = ({ currentUser }) => {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const [jobs, setJobs] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [locations, setLocations] = useState([]);
   const [filters, setFilters] = useState({
     department: "",
     location: "",
@@ -19,6 +24,18 @@ const JobsPage = ({ currentUser }) => {
     currentUser?.role === "admin" || (currentUser?.permissions || []).includes("jobs.write");
 
   useEffect(() => {
+    // Load the filter lists once so the job filters stay typo-free.
+    const loadLookups = async () => {
+      const lookupData = await fetchLookups();
+      setDepartments(lookupData.departments || []);
+      setLocations(lookupData.locations || []);
+    };
+
+    loadLookups();
+  }, []);
+
+  useEffect(() => {
+    // Load the data this screen needs before updating local state.
     const load = async () => {
       const response = await fetchJobs(filters);
       setJobs(response.data);
@@ -42,18 +59,30 @@ const JobsPage = ({ currentUser }) => {
       </div>
 
       <FilterBar>
-        <input
+        <select
           className="h-11 rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm outline-none transition focus:border-cyan-400 focus:bg-white"
-          placeholder={t("jobs.department")}
           value={filters.department}
           onChange={(event) => setFilters((prev) => ({ ...prev, department: event.target.value }))}
-        />
-        <input
+        >
+          <option value="">{t("jobs.department")}</option>
+          {departments.map((department) => (
+            <option key={department.id} value={department.name}>
+              {department.name}
+            </option>
+          ))}
+        </select>
+        <select
           className="h-11 rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm outline-none transition focus:border-cyan-400 focus:bg-white"
-          placeholder={t("jobs.location")}
           value={filters.location}
           onChange={(event) => setFilters((prev) => ({ ...prev, location: event.target.value }))}
-        />
+        >
+          <option value="">{t("jobs.location")}</option>
+          {locations.map((location) => (
+            <option key={location.id} value={location.name}>
+              {location.name}
+            </option>
+          ))}
+        </select>
         <select
           className="h-11 rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm outline-none transition focus:border-cyan-400 focus:bg-white"
           value={filters.order}

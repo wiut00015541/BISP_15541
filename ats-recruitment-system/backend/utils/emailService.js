@@ -1,9 +1,11 @@
+// emailService holds shared backend helpers used across the app.
 const prisma = require("../config/prisma");
 const nodemailer = require("nodemailer");
 
 let transporter;
 const EMAIL_TEMPLATE_KEY = "email_templates";
 
+// Check whether the email environment settings are complete enough to send mail.
 const getEmailConfig = () => {
   const required = ["SMTP_USER", "SMTP_PASS", "EMAIL_FROM"];
   const usesService = Boolean(process.env.SMTP_SERVICE);
@@ -20,6 +22,7 @@ const getEmailConfig = () => {
   };
 };
 
+// Build the Nodemailer transport settings from the current environment variables.
 const buildTransportConfig = () => {
   const service = process.env.SMTP_SERVICE;
 
@@ -44,6 +47,7 @@ const buildTransportConfig = () => {
   };
 };
 
+// Reuse one mail transporter so the app does not reconnect on every email.
 const getTransporter = () => {
   if (transporter) {
     return transporter;
@@ -54,6 +58,7 @@ const getTransporter = () => {
   return transporter;
 };
 
+// Check that the configured email transport can actually connect.
 const verifyEmailConnection = async () => {
   const config = getEmailConfig();
   if (!config.isConfigured) {
@@ -73,6 +78,7 @@ const verifyEmailConnection = async () => {
   };
 };
 
+// Build the HTML email layout used by candidate and interview messages.
 const renderEmailTemplate = ({ heading, intro, sections = [], closing = "ATS Recruitment Team" }) => {
   const sectionHtml = sections
     .map(
@@ -94,9 +100,11 @@ const renderEmailTemplate = ({ heading, intro, sections = [], closing = "ATS Rec
   `;
 };
 
+// Replace template placeholders with runtime values before sending the email.
 const interpolate = (value, variables = {}) =>
   String(value || "").replace(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g, (_match, token) => variables[token] || "");
 
+// Load a saved email template and merge it with fallback content.
 const getManagedEmailTemplate = async (code, fallback = {}, variables = {}) => {
   const setting = await prisma.systemSetting.findUnique({
     where: { key: EMAIL_TEMPLATE_KEY },
@@ -125,6 +133,7 @@ const getManagedEmailTemplate = async (code, fallback = {}, variables = {}) => {
   };
 };
 
+// Send one email with the configured transport after validating the setup.
 const sendEmail = async ({ to, subject, text, html }) => {
   const config = getEmailConfig();
   if (!config.isConfigured) {

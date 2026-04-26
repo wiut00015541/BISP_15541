@@ -1,3 +1,4 @@
+// Language state and translation helpers for the frontend.
 import { createContext, useContext, useEffect, useState } from "react";
 
 const dictionaries = {
@@ -856,10 +857,12 @@ const dictionaries = {
 
 const LanguageContext = createContext(null);
 
+// Keep get value by path focused and easier to understand from the code nearby.
 const getValueByPath = (dictionary, path) => {
   return path.split(".").reduce((current, part) => current?.[part], dictionary);
 };
 
+// Keep language provider focused and easier to understand from the code nearby.
 export const LanguageProvider = ({ children }) => {
   const [language, setLanguage] = useState(() => localStorage.getItem("ats_language") || "en");
 
@@ -878,6 +881,7 @@ export const LanguageProvider = ({ children }) => {
   );
 };
 
+// Keep use language focused and easier to understand from the code nearby.
 export const useLanguage = () => {
   const context = useContext(LanguageContext);
   if (!context) {

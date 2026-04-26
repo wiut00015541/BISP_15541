@@ -1,8 +1,10 @@
+// Login screen for the frontend app.
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "../i18n.jsx";
 import { login as loginRequest } from "../services/authService";
 
+// Render the login page and keep its local UI behavior together.
 const LoginPage = ({ onLogin }) => {
   const navigate = useNavigate();
   const { language, setLanguage, t } = useLanguage();
@@ -10,6 +12,7 @@ const LoginPage = ({ onLogin }) => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Submit the current form state and handle the success or error path.
   const handleSubmit = async (event) => {
     event.preventDefault();
     setLoading(true);
@@ -34,6 +37,7 @@ const LoginPage = ({ onLogin }) => {
       </div>
 
       <div className="relative grid w-full max-w-6xl gap-6 lg:grid-cols-[1.15fr_0.85fr]">
+        {/* Left panel sets the tone and highlights the product value. */}
         <section className="flex min-w-0 flex-col overflow-hidden rounded-[36px] bg-slate-950 p-10 text-white shadow-[0_30px_120px_rgba(15,23,42,0.35)]">
           <div className="flex min-h-full min-w-0 flex-col">
             <div className="min-w-0 text-center lg:text-left">
@@ -57,6 +61,7 @@ const LoginPage = ({ onLogin }) => {
             </div>
           </div>
 
+          {/* Language switch stays visible without competing with the main form. */}
           <div className="flex justify-end">
             <div className="rounded-full border border-white/10 bg-white/5 p-0.5 shadow-sm shadow-black/10 backdrop-blur-sm">
               <button
@@ -81,6 +86,7 @@ const LoginPage = ({ onLogin }) => {
           </div>
         </section>
 
+        {/* Right panel is the actual sign-in form. */}
         <form
           onSubmit={handleSubmit}
           className="rounded-[36px] border border-white/80 bg-white/90 p-8 shadow-[0_24px_80px_rgba(15,23,42,0.1)] backdrop-blur-xl"
