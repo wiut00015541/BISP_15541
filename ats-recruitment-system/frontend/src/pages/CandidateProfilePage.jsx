@@ -4,7 +4,8 @@ import { Link, useParams } from "react-router-dom";
 import { useLanguage } from "../i18n.jsx";
 import { useNotifications } from "../notifications.jsx";
 import { fetchLookups } from "../services/lookupService";
-import { revertHiredApplication, updateApplicationStage } from "../services/applicationsService";
+import { createApplication, revertHiredApplication, updateApplicationStage } from "../services/applicationsService";
+import { fetchJobs } from "../services/jobsService";
 import {
   addCandidateReview,
   analyzeCandidateResume,
@@ -39,6 +40,10 @@ const emptyFeedbackForm = {
   strengths: "",
   concerns: "",
   recommendation: "",
+};
+
+const emptyAssignmentForm = {
+  jobId: "",
 };
 
 // Keep input class focused and easier to understand from the code nearby.
@@ -87,10 +92,13 @@ const CandidateProfilePage = () => {
   const [communicationForm, setCommunicationForm] = useState(emptyCommunicationForm);
   const [interviewForm, setInterviewForm] = useState(emptyInterviewForm);
   const [feedbackForms, setFeedbackForms] = useState({});
+  const [assignmentForm, setAssignmentForm] = useState(emptyAssignmentForm);
   const [errors, setErrors] = useState({});
   const [emailTemplates, setEmailTemplates] = useState([]);
+  const [assignableJobs, setAssignableJobs] = useState([]);
   const [analyzingResumeId, setAnalyzingResumeId] = useState("");
   const [stageActionId, setStageActionId] = useState("");
+  const [assigningJob, setAssigningJob] = useState(false);
 
   const tabs = [
     { key: "overview", label: t("candidates.overviewTab") },
@@ -131,6 +139,24 @@ const CandidateProfilePage = () => {
 
     loadLookups();
   }, []);
+
+  useEffect(() => {
+    // Load open jobs so this candidate can be attached to another role when needed.
+    const loadAssignableJobs = async () => {
+      const response = await fetchJobs({ page: 1, limit: 200, status: "OPEN" });
+      const existingJobIds = new Set((candidate?.applications || []).map((application) => application.jobId));
+      const openJobs = (response.data || []).filter((job) => !existingJobIds.has(job.id));
+
+      setAssignableJobs(openJobs);
+      setAssignmentForm((prev) => ({
+        jobId: prev.jobId && openJobs.some((job) => job.id === prev.jobId) ? prev.jobId : openJobs[0]?.id || "",
+      }));
+    };
+
+    if (candidate) {
+      loadAssignableJobs();
+    }
+  }, [candidate]);
 
   const allInterviews = useMemo(() => {
     if (!candidate?.applications?.length) {
@@ -407,6 +433,32 @@ const CandidateProfilePage = () => {
       notifications.error(error?.response?.data?.message || t("common.genericError"));
     } finally {
       setStageActionId("");
+    }
+  };
+
+  // Handle assigning an existing candidate to another open job.
+  const handleAssignToRole = async (event) => {
+    event.preventDefault();
+
+    if (!assignmentForm.jobId) {
+      notifications.error(t("candidates.assignRoleValidation"));
+      return;
+    }
+
+    setAssigningJob(true);
+    try {
+      await createApplication({
+        candidateId: id,
+        jobId: assignmentForm.jobId,
+        source: candidate?.source || "manual",
+      });
+      notifications.success(t("candidates.assignRoleSuccess"));
+      setAssignmentForm(emptyAssignmentForm);
+      await loadCandidate();
+    } catch (error) {
+      notifications.error(error?.response?.data?.message || t("common.genericError"));
+    } finally {
+      setAssigningJob(false);
     }
   };
 
@@ -1015,6 +1067,37 @@ const CandidateProfilePage = () => {
   const renderApplications = () => (
     <div className="rounded-[30px] border border-white/80 bg-white/90 p-6 shadow-[0_18px_60px_rgba(15,23,42,0.08)]">
       <h2 className="text-xl font-semibold text-slate-950">{t("pipeline.title")}</h2>
+      <div className="mt-4 rounded-[22px] border border-slate-100 bg-slate-50/70 p-4">
+        <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">
+          {t("candidates.assignRoleTitle")}
+        </h3>
+        <p className="mt-2 text-sm text-slate-500">{t("candidates.assignRoleSubtitle")}</p>
+        <form className="mt-4 flex flex-col gap-3 md:flex-row" onSubmit={handleAssignToRole}>
+          <select
+            className={inputClass()}
+            value={assignmentForm.jobId}
+            onChange={(event) => setAssignmentForm({ jobId: event.target.value })}
+            disabled={assignableJobs.length === 0 || assigningJob}
+          >
+            <option value="">{t("candidates.assignRoleJob")}</option>
+            {assignableJobs.map((job) => (
+              <option key={job.id} value={job.id}>
+                {job.title}
+              </option>
+            ))}
+          </select>
+          <button
+            type="submit"
+            className="rounded-full bg-slate-950 px-5 py-3 text-sm font-medium text-white disabled:cursor-not-allowed disabled:bg-slate-300"
+            disabled={assignableJobs.length === 0 || assigningJob}
+          >
+            {assigningJob ? t("candidates.updatingStatus") : t("candidates.assignRoleButton")}
+          </button>
+        </form>
+        {assignableJobs.length === 0 ? (
+          <p className="mt-3 text-sm text-slate-500">{t("candidates.noJobsAvailable")}</p>
+        ) : null}
+      </div>
       <div className="mt-4 space-y-3">
         {(candidate?.applications || []).length === 0 ? <p className="text-sm text-slate-500">{t("common.noData")}</p> : null}
         {(candidate?.applications || []).map((application) => (

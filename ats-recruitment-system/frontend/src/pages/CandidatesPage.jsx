@@ -14,17 +14,17 @@ const CandidatesPage = () => {
   const { t } = useLanguage();
   const { page, setPage, params } = usePagination(1, 20);
   const [result, setResult] = useState({ data: [], meta: {} });
-  const [skill, setSkill] = useState("");
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     // Load the data this screen needs before updating local state.
     const load = async () => {
-      const response = await fetchCandidates({ ...params, skill });
+      const response = await fetchCandidates({ ...params, search });
       setResult(response);
     };
 
     load();
-  }, [params, skill]);
+  }, [params, search]);
 
   const latestResumeMap = useMemo(() => {
     return new Map(
@@ -52,9 +52,9 @@ const CandidatesPage = () => {
       <FilterBar>
         <input
           className="h-11 min-w-[280px] rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm outline-none transition focus:border-cyan-400 focus:bg-white"
-          placeholder={t("candidates.skillPlaceholder")}
-          value={skill}
-          onChange={(event) => setSkill(event.target.value)}
+          placeholder={t("candidates.nameSearchPlaceholder")}
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
         />
       </FilterBar>
 

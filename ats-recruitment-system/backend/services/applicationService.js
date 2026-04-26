@@ -72,6 +72,12 @@ const getApplications = async (query, user) => {
 
 // Create application and apply the related business rules.
 const createApplication = async (payload, userId, user) => {
+  if (!payload.candidateId || !payload.jobId) {
+    const error = new Error("Candidate and job are required");
+    error.status = 400;
+    throw error;
+  }
+
   const stage = await prisma.stage.findFirst({ where: { name: "Applied" } });
   if (!stage) {
     const error = new Error("Pipeline stage not configured");
@@ -79,16 +85,58 @@ const createApplication = async (payload, userId, user) => {
     throw error;
   }
 
-  const job = await prisma.job.findFirst({
-    where: {
-      id: payload.jobId,
-      ...(isAdmin(user) ? {} : { OR: [{ recruiterId: user.id }, { hiringManagerId: user.id }] }),
-    },
-  });
+  const [job, candidate, existingApplication] = await Promise.all([
+    prisma.job.findFirst({
+      where: {
+        id: payload.jobId,
+        status: "OPEN",
+        ...(isAdmin(user) ? {} : { OR: [{ recruiterId: user.id }, { hiringManagerId: user.id }] }),
+      },
+    }),
+    prisma.candidate.findFirst({
+      where: {
+        id: payload.candidateId,
+        ...(isAdmin(user)
+          ? {}
+          : {
+              OR: [
+                { assignedToId: user.id },
+                {
+                  applications: {
+                    some: {
+                      job: {
+                        OR: [{ recruiterId: user.id }, { hiringManagerId: user.id }],
+                      },
+                    },
+                  },
+                },
+              ],
+            }),
+      },
+    }),
+    prisma.application.findFirst({
+      where: {
+        candidateId: payload.candidateId,
+        jobId: payload.jobId,
+      },
+    }),
+  ]);
+
+  if (!candidate) {
+    const error = new Error("Candidate not found");
+    error.status = 404;
+    throw error;
+  }
 
   if (!job) {
-    const error = new Error("Job not found");
-    error.status = 404;
+    const error = new Error("Selected job must be open and assigned to you");
+    error.status = 400;
+    throw error;
+  }
+
+  if (existingApplication) {
+    const error = new Error("Candidate is already assigned to this job");
+    error.status = 409;
     throw error;
   }
 

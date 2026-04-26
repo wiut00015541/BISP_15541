@@ -7,6 +7,12 @@ export const fetchApplications = async (params) => {
   return data;
 };
 
+// Create a new application for an existing candidate.
+export const createApplication = async (payload) => {
+  const { data } = await api.post("/applications", payload);
+  return data;
+};
+
 // Update application stage through the backend API.
 export const updateApplicationStage = async (id, stage, note) => {
   const { data } = await api.patch(`/applications/${id}/stage`, { stage, note });

@@ -247,7 +247,7 @@ const dictionaries = {
     },
     candidates: {
       title: "Candidates",
-      subtitle: "Review the talent pool, search by skill, and monitor ownership.",
+      subtitle: "Review the talent pool, search by candidate name, and monitor ownership.",
       newButton: "Add candidate",
       profileTitle: "Candidate profile",
       profileSubtitle: "Review candidate details, resumes, notes, and connected applications.",
@@ -316,6 +316,12 @@ const dictionaries = {
       markWithdrawnSuccess: "Candidate marked as withdrawn.",
       markHiredSuccess: "Candidate marked as hired and the job was closed.",
       revertHiredSuccess: "Hired status reversed and the related job was reopened.",
+      assignRoleTitle: "Assign to another role",
+      assignRoleSubtitle: "Create a new application for this existing candidate.",
+      assignRoleJob: "Select open job",
+      assignRoleButton: "Assign to role",
+      assignRoleValidation: "Select an open job.",
+      assignRoleSuccess: "Candidate assigned to the selected role.",
       terminalStageLocked: "Terminal stage reached",
       updatingStatus: "Updating...",
       interviewsSection: "Interviews",
@@ -344,7 +350,7 @@ const dictionaries = {
       uploadResume: "Upload PDF or DOCX",
       existingResume: "Latest resume",
       selectSkills: "Select skills",
-      skillPlaceholder: "Filter by skill, for example React",
+      nameSearchPlaceholder: "Search by candidate name",
       empty: "No candidates matched the current filters.",
     },
     pipeline: {
@@ -750,6 +756,14 @@ const dictionaries = {
         "\u041a\u0430\u043d\u0434\u0438\u0434\u0430\u0442 \u043e\u0442\u043c\u0435\u0447\u0435\u043d \u043a\u0430\u043a hired, \u0438 \u0432\u0430\u043a\u0430\u043d\u0441\u0438\u044f \u0430\u0432\u0442\u043e\u043c\u0430\u0442\u0438\u0447\u0435\u0441\u043a\u0438 \u0437\u0430\u043a\u0440\u044b\u0442\u0430.",
       revertHiredSuccess:
         "\u0421\u0442\u0430\u0442\u0443\u0441 hired \u043e\u0442\u043c\u0435\u043d\u0435\u043d, \u0438 \u0441\u0432\u044f\u0437\u0430\u043d\u043d\u0430\u044f \u0432\u0430\u043a\u0430\u043d\u0441\u0438\u044f \u0441\u043d\u043e\u0432\u0430 \u043e\u0442\u043a\u0440\u044b\u0442\u0430.",
+      assignRoleTitle: "\u041d\u0430\u0437\u043d\u0430\u0447\u0438\u0442\u044c \u043d\u0430 \u0434\u0440\u0443\u0433\u0443\u044e \u0432\u0430\u043a\u0430\u043d\u0441\u0438\u044e",
+      assignRoleSubtitle:
+        "\u0421\u043e\u0437\u0434\u0430\u0439\u0442\u0435 \u043d\u043e\u0432\u0443\u044e \u0437\u0430\u044f\u0432\u043a\u0443 \u0434\u043b\u044f \u0443\u0436\u0435 \u0441\u0443\u0449\u0435\u0441\u0442\u0432\u0443\u044e\u0449\u0435\u0433\u043e \u043a\u0430\u043d\u0434\u0438\u0434\u0430\u0442\u0430.",
+      assignRoleJob: "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u043e\u0442\u043a\u0440\u044b\u0442\u0443\u044e \u0432\u0430\u043a\u0430\u043d\u0441\u0438\u044e",
+      assignRoleButton: "\u041d\u0430\u0437\u043d\u0430\u0447\u0438\u0442\u044c",
+      assignRoleValidation: "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u043e\u0442\u043a\u0440\u044b\u0442\u0443\u044e \u0432\u0430\u043a\u0430\u043d\u0441\u0438\u044e.",
+      assignRoleSuccess:
+        "\u041a\u0430\u043d\u0434\u0438\u0434\u0430\u0442 \u043d\u0430\u0437\u043d\u0430\u0447\u0435\u043d \u043d\u0430 \u0432\u044b\u0431\u0440\u0430\u043d\u043d\u0443\u044e \u0432\u0430\u043a\u0430\u043d\u0441\u0438\u044e.",
       terminalStageLocked: "\u0422\u0435\u0440\u043c\u0438\u043d\u0430\u043b\u044c\u043d\u044b\u0439 \u044d\u0442\u0430\u043f \u0434\u043e\u0441\u0442\u0438\u0433\u043d\u0443\u0442",
       updatingStatus: "\u041e\u0431\u043d\u043e\u0432\u043b\u0435\u043d\u0438\u0435...",
       communicationSubjectValidation: "\u0422\u0435\u043c\u0430 email \u043e\u0431\u044f\u0437\u0430\u0442\u0435\u043b\u044c\u043d\u0430.",
@@ -783,7 +797,7 @@ const dictionaries = {
       uploadResume: "\u0417\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u0435 PDF \u0438\u043b\u0438 DOCX",
       existingResume: "\u041f\u043e\u0441\u043b\u0435\u0434\u043d\u0435\u0435 \u0440\u0435\u0437\u044e\u043c\u0435",
       selectSkills: "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u043d\u0430\u0432\u044b\u043a\u0438",
-      skillPlaceholder: "\u0424\u0438\u043b\u044c\u0442\u0440 \u043f\u043e \u043d\u0430\u0432\u044b\u043a\u0443, \u043d\u0430\u043f\u0440\u0438\u043c\u0435\u0440 React",
+      nameSearchPlaceholder: "\u041f\u043e\u0438\u0441\u043a \u043f\u043e \u0438\u043c\u0435\u043d\u0438 \u043a\u0430\u043d\u0434\u0438\u0434\u0430\u0442\u0430",
       empty: "\u041f\u043e \u0442\u0435\u043a\u0443\u0449\u0438\u043c \u0444\u0438\u043b\u044c\u0442\u0440\u0430\u043c \u043a\u0430\u043d\u0434\u0438\u0434\u0430\u0442\u044b \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u044b.",
     },
     pipeline: {
