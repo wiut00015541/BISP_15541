@@ -13,9 +13,13 @@ const JobsPage = ({ currentUser }) => {
   const [jobs, setJobs] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [locations, setLocations] = useState([]);
+  const [recruiters, setRecruiters] = useState([]);
+  const [hiringManagers, setHiringManagers] = useState([]);
   const [filters, setFilters] = useState({
     department: "",
     location: "",
+    recruiterId: "",
+    hiringManagerId: "",
     sort: "created_at",
     order: "desc",
   });
@@ -29,6 +33,8 @@ const JobsPage = ({ currentUser }) => {
       const lookupData = await fetchLookups();
       setDepartments(lookupData.departments || []);
       setLocations(lookupData.locations || []);
+      setRecruiters(lookupData.recruiters || []);
+      setHiringManagers(lookupData.hiringManagers || []);
     };
 
     loadLookups();
@@ -90,6 +96,30 @@ const JobsPage = ({ currentUser }) => {
         >
           <option value="desc">{t("common.newest")}</option>
           <option value="asc">{t("common.oldest")}</option>
+        </select>
+        <select
+          className="h-11 rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm outline-none transition focus:border-cyan-400 focus:bg-white"
+          value={filters.recruiterId}
+          onChange={(event) => setFilters((prev) => ({ ...prev, recruiterId: event.target.value }))}
+        >
+          <option value="">{t("jobs.recruiterColumn")}</option>
+          {recruiters.map((recruiter) => (
+            <option key={recruiter.id} value={recruiter.id}>
+              {[recruiter.firstName, recruiter.lastName].filter(Boolean).join(" ") || recruiter.email}
+            </option>
+          ))}
+        </select>
+        <select
+          className="h-11 rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm outline-none transition focus:border-cyan-400 focus:bg-white"
+          value={filters.hiringManagerId}
+          onChange={(event) => setFilters((prev) => ({ ...prev, hiringManagerId: event.target.value }))}
+        >
+          <option value="">{t("jobs.hiringManagerColumn")}</option>
+          {hiringManagers.map((manager) => (
+            <option key={manager.id} value={manager.id}>
+              {[manager.firstName, manager.lastName].filter(Boolean).join(" ") || manager.email}
+            </option>
+          ))}
         </select>
       </FilterBar>
 

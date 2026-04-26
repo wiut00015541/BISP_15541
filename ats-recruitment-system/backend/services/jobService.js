@@ -31,6 +31,14 @@ const buildJobWhere = (query, user) => {
     };
   }
 
+  if (query.recruiterId) {
+    where.recruiterId = query.recruiterId;
+  }
+
+  if (query.hiringManagerId) {
+    where.hiringManagerId = query.hiringManagerId;
+  }
+
   if (query.status) {
     where.status = { equals: query.status, mode: "insensitive" };
   }
