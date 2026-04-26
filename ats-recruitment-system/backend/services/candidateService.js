@@ -81,15 +81,20 @@ const buildAccessibleCandidateWhere = (query, user) => {
   }
 
   if (query.search) {
+    const searchTerms = String(query.search)
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean);
+
     where.AND = [
       ...(where.AND || []),
-      {
+      ...searchTerms.map((term) => ({
         OR: [
-          { firstName: { contains: query.search, mode: "insensitive" } },
-          { lastName: { contains: query.search, mode: "insensitive" } },
-          { email: { contains: query.search, mode: "insensitive" } },
+          { firstName: { contains: term, mode: "insensitive" } },
+          { lastName: { contains: term, mode: "insensitive" } },
+          { email: { contains: term, mode: "insensitive" } },
         ],
-      },
+      })),
     ];
   }
 
